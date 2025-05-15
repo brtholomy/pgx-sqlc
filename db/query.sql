@@ -1,7 +1,6 @@
 -- name: CreateAccount :one
 INSERT INTO bank (first, last, email) VALUES ($1, $2, $3)
 RETURNING *;
-;
 
 -- name: GetAccount :one
 SELECT * FROM bank
