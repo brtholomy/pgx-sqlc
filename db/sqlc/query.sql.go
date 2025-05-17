@@ -11,6 +11,35 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createProduct = `-- name: CreateProduct :one
+INSERT INTO products (id, user_id, name, price) VALUES ($1, $2, $3, $4)
+RETURNING id, user_id, name, price
+`
+
+type CreateProductParams struct {
+	ID     pgtype.UUID    `db:"id" json:"id"`
+	UserID pgtype.UUID    `db:"user_id" json:"user_id"`
+	Name   string         `db:"name" json:"name"`
+	Price  pgtype.Numeric `db:"price" json:"price"`
+}
+
+func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
+	row := q.db.QueryRow(ctx, createProduct,
+		arg.ID,
+		arg.UserID,
+		arg.Name,
+		arg.Price,
+	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Price,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, name, email) VALUES ($1, $2, $3)
 RETURNING id, email, name
