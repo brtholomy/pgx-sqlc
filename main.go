@@ -45,14 +45,14 @@ func main() {
 		panic(err)
 	}
 	var num pgtype.Numeric
-	err = num.Scan("16.45")
+	err = num.Scan("1.99")
 	if err != nil {
 		panic(err)
 	}
 	newprod, err := pgdb.Query.CreateProduct(ctx, sqlc.CreateProductParams{
 		ID:     *pid,
 		UserID: uid,
-		Name:   "cheese",
+		Name:   "gum",
 		Price:  num,
 	})
 	if err != nil {
@@ -60,4 +60,9 @@ func main() {
 	}
 	fmt.Println(newprod.Name)
 
+	products, err := pgdb.Query.ListProducts(ctx, uid)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(products)
 }

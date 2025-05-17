@@ -70,6 +70,35 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	return i, err
 }
 
+const listProducts = `-- name: ListProducts :many
+SELECT id, user_id, name, price FROM products WHERE user_id = $1
+`
+
+func (q *Queries) ListProducts(ctx context.Context, userID pgtype.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listProducts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Name,
+			&i.Price,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, email, name FROM users
 `
