@@ -11,72 +11,50 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createAccount = `-- name: CreateAccount :one
-INSERT INTO bank (first, last, email) VALUES ($1, $2, $3)
-RETURNING id, first, last, email, amount, creation
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (id, name, email) VALUES ($1, $2, $3)
+RETURNING id, email, name
 `
 
-type CreateAccountParams struct {
-	First string `db:"first" json:"first"`
-	Last  string `db:"last" json:"last"`
-	Email string `db:"email" json:"email"`
+type CreateUserParams struct {
+	ID    pgtype.UUID `db:"id" json:"id"`
+	Name  string      `db:"name" json:"name"`
+	Email string      `db:"email" json:"email"`
 }
 
-func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Bank, error) {
-	row := q.db.QueryRow(ctx, createAccount, arg.First, arg.Last, arg.Email)
-	var i Bank
-	err := row.Scan(
-		&i.ID,
-		&i.First,
-		&i.Last,
-		&i.Email,
-		&i.Amount,
-		&i.Creation,
-	)
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser, arg.ID, arg.Name, arg.Email)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.Name)
 	return i, err
 }
 
-const getAccount = `-- name: GetAccount :one
-SELECT id, first, last, email, amount, creation FROM bank
+const getUser = `-- name: GetUser :one
+SELECT id, email, name FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetAccount(ctx context.Context, id pgtype.UUID) (Bank, error) {
-	row := q.db.QueryRow(ctx, getAccount, id)
-	var i Bank
-	err := row.Scan(
-		&i.ID,
-		&i.First,
-		&i.Last,
-		&i.Email,
-		&i.Amount,
-		&i.Creation,
-	)
+func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
+	var i User
+	err := row.Scan(&i.ID, &i.Email, &i.Name)
 	return i, err
 }
 
-const listAccounts = `-- name: ListAccounts :many
-SELECT id, first, last, email, amount, creation FROM bank
-ORDER BY creation
+const listUsers = `-- name: ListUsers :many
+SELECT id, email, name FROM users
 `
 
-func (q *Queries) ListAccounts(ctx context.Context) ([]Bank, error) {
-	rows, err := q.db.Query(ctx, listAccounts)
+func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Bank
+	var items []User
 	for rows.Next() {
-		var i Bank
-		if err := rows.Scan(
-			&i.ID,
-			&i.First,
-			&i.Last,
-			&i.Email,
-			&i.Amount,
-			&i.Creation,
-		); err != nil {
+		var i User
+		if err := rows.Scan(&i.ID, &i.Email, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

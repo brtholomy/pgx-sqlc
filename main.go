@@ -5,27 +5,19 @@ import (
 	"fmt"
 	"os"
 
+	"pgx-sqlc/db"
 	"pgx-sqlc/db/sqlc"
 )
 
 func main() {
 	ctx := context.Background()
 	db_url := "user=bth database=testdb"
+	pgdb := sqlc.NewDatabase(ctx, db_url)
 
-	// NOTE: this is the single connection method:
-	// conn, err := pgx.Connect(ctx, db_url)
-	// if err != nil {
-	// 	fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-	// 	os.Exit(1)
-	// }
-	// defer conn.Close(ctx)
-	// q := sqlc.New(conn)
-
-	db := sqlc.NewDatabase(ctx, db_url)
-
-	newacc, err := db.Query.CreateAccount(ctx, sqlc.CreateAccountParams{
-		First: "Bob",
-		Last:  "Jones",
+	id, err := db.GetUUIDv7()
+	newacc, err := pgdb.Query.CreateUser(ctx, sqlc.CreateUserParams{
+		ID:    *id,
+		Name:  "Bob",
 		Email: "bob@j.com",
 	})
 	if err != nil {
@@ -33,9 +25,9 @@ func main() {
 	}
 	fmt.Println(newacc.ID)
 
-	acc, err := db.Query.GetAccount(ctx, newacc.ID)
+	acc, err := pgdb.Query.GetUser(ctx, newacc.ID)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "GetAuthor failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed: %v\n", err)
 		os.Exit(1)
 	}
 

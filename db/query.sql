@@ -1,11 +1,10 @@
--- name: CreateAccount :one
-INSERT INTO bank (first, last, email) VALUES ($1, $2, $3)
+-- name: CreateUser :one
+INSERT INTO users (id, name, email) VALUES ($1, $2, $3)
 RETURNING *;
 
--- name: GetAccount :one
-SELECT * FROM bank
+-- name: GetUser :one
+SELECT * FROM users
 WHERE id = $1 LIMIT 1;
 
--- name: ListAccounts :many
-SELECT * FROM bank
-ORDER BY creation;
+-- name: ListUsers :many
+SELECT * FROM users;
