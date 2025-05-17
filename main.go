@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 	db_url := "user=bth database=testdb"
-	pgdb := sqlc.NewDatabase(ctx, db_url)
+	pgdb := db.NewDatabase(ctx, db_url)
 
 	id, err := db.GetUUIDv7()
 	newacc, err := pgdb.Query.CreateUser(ctx, sqlc.CreateUserParams{
