@@ -1,0 +1,104 @@
+package pages
+
+import (
+	"github.com/brtholomy/templui-quickstart/ui/layouts"
+	"github.com/axzilla/templui/component/button"
+	"github.com/axzilla/templui/component/datepicker"
+	"github.com/axzilla/templui/component/form"
+	"github.com/axzilla/templui/component/checkbox"
+)
+
+templ Landing() {
+	@layouts.BaseLayout() {
+		<div class="flex justify-center items-center min-h-screen">
+			<div class="flex flex-col gap-6 items-center justify-center px-4 w-full max-w-3xl py-16">
+
+				<div class="text-center space-y-4">
+					<h1 class="text-4xl">Plump</h1>
+					<p class=" text-lg">
+						Bina is great.
+					</p>
+				</div>
+
+				<div class="text-center space-y-4">
+					@datepicker.DatePicker()
+				</div>
+
+				<div class="w-full max-w-sm">
+					@form.Item() {
+						@form.ItemFlex() {
+							@checkbox.Checkbox(checkbox.Props{
+								Name:    "interests",
+								Value:   "design",
+								ID:      "c1",
+								Checked: true,
+								},
+							)
+							@form.Label(form.LabelProps{
+								For: "c1",
+							}) {
+								Bookkeeping
+							}
+						}
+						@form.ItemFlex() {
+							@checkbox.Checkbox(checkbox.Props{
+								Name:     "interests",
+								Value:    "development",
+								ID:       "c2",
+							})
+							@form.Label(form.LabelProps{
+								For: "c2",
+							}) {
+								Pooping
+							}
+						}
+						@form.ItemFlex() {
+							@checkbox.Checkbox(checkbox.Props{
+								Name:  "interests",
+								Value: "marketing",
+								ID:    "c3",
+							})
+							@form.Label(form.LabelProps{
+								For: "c3",
+							}) {
+								Business bean
+							}
+						}
+						@form.Description() {
+							Choose all areas that interest you.
+						}
+						@form.Message(form.MessageProps{
+							Variant: form.MessageVariantError,
+						}) {
+							Please select at least one interest.
+						}
+					}
+				</div>
+
+				<div class="flex gap-3">
+					@button.Button(button.Props{
+						Variant: "default",
+						Href:    "https://templui.io",
+					}) {
+						Ass
+					}
+					@button.Button(button.Props{
+						Variant: "outline",
+						Href:    "https://github.com/axzilla/templui",
+					}) {
+						GitHub
+					}
+				</div>
+
+				<p class="text-sm text-muted-foreground mt-4">
+						Questions?
+						<a href="https://github.com/axzilla/templui/discussions"
+					target="_blank" class="text-primary hover:underline">
+								Too bad
+						</a>
+				</p>
+
+			</div>
+		</div>
+	}
+}
