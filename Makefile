@@ -15,10 +15,10 @@ server:
 	--misc.clean_on_exit true
 
 tailwind-clean:
-	tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --clean
+	tailwindcss -i ./ui/assets/css/input.css -o ./ui/assets/css/output.css --clean
 
 tailwind-watch:
-	tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --watch
+	tailwindcss -i ./ui/assets/css/input.css -o ./ui/assets/css/output.css --watch
 
 dev:
 	make tailwind-clean

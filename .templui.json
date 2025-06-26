@@ -1,5 +1,5 @@
 {
-  "componentsDir": "components",
-  "utilsDir": "utils",
+  "componentsDir": "ui/components",
+  "utilsDir": "ui/utils",
   "moduleName": "pgx-sqlc"
 }
