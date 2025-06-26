@@ -1,7 +1,7 @@
-// templui component label - version: main installed by templui v0.70.0
+// templui component label - version: v0.80.2 installed by templui v0.80.2
 package label
 
-import "pgx-sqlc/utils"
+import "pgx-sqlc/ui/templui/utils"
 
 type Props struct {
 	ID         string
@@ -35,4 +35,8 @@ templ Label(props ...Props) {
 	>
 		{ children... }
 	</label>
+}
+
+templ Script() {
+	<script defer src="/ui/assets/js/label.min.js"></script>
 }
