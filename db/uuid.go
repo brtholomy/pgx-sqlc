@@ -5,15 +5,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func GetUUIDv7() (*pgtype.UUID, error) {
+func ReadUUID(id string) (pgtype.UUID, error) {
+	var uuid pgtype.UUID
+	err := uuid.Scan(id)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+	return uuid, nil
+}
+
+func MakeUUIDv7() (pgtype.UUID, error) {
 	googleuuid, err := uuid.NewV7()
 	if err != nil {
-		return nil, err
+		return pgtype.UUID{}, err
 	}
-	var id pgtype.UUID
-	err = id.Scan(googleuuid.String())
-	if err != nil {
-		return nil, err
-	}
-	return &id, nil
+	return ReadUUID(googleuuid.String())
 }

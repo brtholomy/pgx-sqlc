@@ -7,20 +7,26 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func NewUser(ctx context.Context, pgdb *Database, name, email string) (*sqlc.User, error) {
-	id, err := GetUUIDv7()
+// convenience function for use before UserDatabase can be created.
+func GetUser(ctx context.Context, pgdb *Database, id string) (sqlc.User, error) {
+	uuid, err := ReadUUID(id)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	newacc, err := pgdb.Query.CreateUser(ctx, sqlc.CreateUserParams{
-		ID:    *id,
+	return pgdb.Query.GetUser(ctx, uuid)
+}
+
+// convenience function for use before UserDatabase can be created.
+func NewUser(ctx context.Context, pgdb *Database, name, email string) (sqlc.User, error) {
+	id, err := MakeUUIDv7()
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	return pgdb.Query.CreateUser(ctx, sqlc.CreateUserParams{
+		ID:    id,
 		Name:  name,
 		Email: email,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return &newacc, nil
 }
 
 // Another wrapper.
@@ -32,7 +38,7 @@ type UserDatabase struct {
 }
 
 func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*sqlc.Product, error) {
-	pid, err := GetUUIDv7()
+	pid, err := MakeUUIDv7()
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +48,7 @@ func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*s
 		return nil, err
 	}
 	newprod, err := udb.DB.Query.CreateProduct(ctx, sqlc.CreateProductParams{
-		ID:     *pid,
+		ID:     pid,
 		UserID: udb.User.ID,
 		Name:   name,
 		Price:  num,
