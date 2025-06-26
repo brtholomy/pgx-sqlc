@@ -1,0 +1,7 @@
+{
+  "componentsDir": "ui/templui/components",
+  "utilsDir": "ui/templui/utils",
+  "jsDir": "ui/assets/js",
+  "jsPublicPath": "/ui/assets/js",
+  "moduleName": "pgx-sqlc"
+}
