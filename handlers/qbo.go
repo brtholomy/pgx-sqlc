@@ -10,24 +10,6 @@ import (
 	quickbooks "github.com/rwestlund/quickbooks-go"
 )
 
-// TODO: figure out if this factory method thing is better.
-// func NewQboHandler(request func(*http.Request) string) QboHandler {
-// 	return QboHandler{Request: request}
-// }
-
-// type QboHandler struct {
-// 	// must match the signature of the QboRequest func below.
-// 	Request func(r *http.Request) string
-// }
-
-// // implements the HTTP handler interface on the QboHandler type.
-// func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	// NOTE: can pass in http.Request fields and methods.
-// 	// TODO: change this signature from returning a string.
-// 	resp := qh.Request(r)
-// 	pages.Qbo(resp).Render(r.Context(), w)
-// }
-
 func loadClient(token *quickbooks.BearerToken) (c *quickbooks.Client, err error) {
 	clientId := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("SECRET")
@@ -72,6 +54,69 @@ func fillInvoice(amount string) quickbooks.Invoice {
 	return invoice
 }
 
+type QboInvoiceResp struct {
+	Amount     string
+	InvoiceStr string
+	Invoice    *quickbooks.Invoice
+}
+
+// TODO: is a http.Handler type preferable because it could store the qbo client and other reusables?
+
+// // http.Handler:
+// type Handler interface {
+//     ServeHTTP(ResponseWriter, *Request)
+// }
+
+// func NewQboHandler(process func(*http.Request) QboInvoiceResp) QboHandler {
+// 	return QboHandler{Process: process}
+// }
+
+// type QboHandler struct {
+// 	// gets called within the ServeHTTP() method.
+// 	Process func(r *http.Request) QboInvoiceResp
+// }
+
+// // implements the HTTP handler interface on the QboHandler type.
+// func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	// NOTE: can pass in http.Request fields and methods.
+// 	// TODO: change this signature from returning a string.
+// 	resp := qh.Process(r)
+// 	pages.Qbo(resp.Amount, resp.Resp).Render(r.Context(), w)
+// }
+
+// func GetInvoice(r *http.Request, amount string, invoice *quickbooks.Invoice) QboInvoiceResp {
+// 	var resp QboInvoiceResp
+// 	if invoice != nil {
+// 		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		invstr = string(jsonBytes)
+// 	}
+// 	return resp
+// }
+
+// //////////////////////////////////////////////////////////
+// HandleFunc versions:
+func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *quickbooks.Invoice) {
+	var resp QboInvoiceResp
+	if invoice != nil {
+		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		resp.InvoiceStr = string(jsonBytes)
+		resp.Invoice = invoice
+		resp.Amount = string(invoice.TotalAmt)
+	}
+	component := pages.Qbo(resp.Amount, resp.InvoiceStr)
+	component.Render(r.Context(), w)
+}
+
+func QboGetHandler(w http.ResponseWriter, r *http.Request) {
+	handleInvoice(w, r, nil)
+}
+
 func QboPostHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -86,19 +131,5 @@ func QboPostHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-
-	QboGetHandler(w, r, amount, resp)
-}
-
-func QboGetHandler(w http.ResponseWriter, r *http.Request, amount string, invoice *quickbooks.Invoice) {
-	invstr := ""
-	if invoice != nil {
-		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		invstr = string(jsonBytes)
-	}
-	component := pages.Qbo(amount, invstr)
-	component.Render(r.Context(), w)
+	handleInvoice(w, r, resp)
 }

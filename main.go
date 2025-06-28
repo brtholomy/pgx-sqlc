@@ -46,12 +46,14 @@ func main() {
 	mux := http.NewServeMux()
 	setupAssetsRoutes(mux)
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
-	mux.HandleFunc("GET /qbo", func(w http.ResponseWriter, r *http.Request) {
-		handlers.QboGetHandler(w, r, "0.00", nil)
-	})
-	mux.HandleFunc("POST /qbo", func(w http.ResponseWriter, r *http.Request) {
-		handlers.QboPostHandler(w, r)
-	})
+
+	// http.Handler implementations:
+	// mux.Handle("GET /qbo", handlers.NewQboHandler(handlers.GetInvoice))
+	// mux.Handle("POST /qbo", handlers.NewQboHandler(handlers.ProcessInvoice))
+
+	// HandleFunc versions:
+	mux.HandleFunc("GET /qbo", handlers.QboGetHandler)
+	mux.HandleFunc("POST /qbo", handlers.QboPostHandler)
 
 	fmt.Println("Server is running on http://localhost:8090")
 	http.ListenAndServe(":8090", mux)
