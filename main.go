@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
 
-	"pgx-sqlc/db"
+	"pgx-sqlc/handlers"
 	"pgx-sqlc/ui/assets"
 	"pgx-sqlc/ui/pages"
 
@@ -47,24 +46,32 @@ func main() {
 	mux := http.NewServeMux()
 	setupAssetsRoutes(mux)
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
+	mux.HandleFunc("GET /qbo", func(w http.ResponseWriter, r *http.Request) {
+		handlers.QboGetHandler(w, r, "0.00", nil)
+	})
+	mux.HandleFunc("POST /qbo", func(w http.ResponseWriter, r *http.Request) {
+		handlers.QboPostHandler(w, r)
+	})
+
 	fmt.Println("Server is running on http://localhost:8090")
 	http.ListenAndServe(":8090", mux)
 
-	ctx := context.Background()
-	db_url := "user=bth database=testdb"
-	pgdb := db.NewDatabase(ctx, db_url)
+	// DB code:
+	// ctx := context.Background()
+	// db_url := "user=bth database=testdb"
+	// pgdb := db.NewDatabase(ctx, db_url)
 
-	// joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
-	joe, err := db.GetUser(ctx, pgdb, "0197ada4-5f8b-77d7-b039-5651eabf19e1")
-	if err != nil {
-		panic(err)
-	}
-	udb := db.UserDatabase{&joe, pgdb}
-	newprod, err := udb.NewProduct(ctx, "stuff", "3.15")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(newprod.Name)
+	// // joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
+	// joe, err := db.GetUser(ctx, pgdb, "0197ada4-5f8b-77d7-b039-5651eabf19e1")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// udb := db.UserDatabase{&joe, pgdb}
+	// newprod, err := udb.NewProduct(ctx, "stuff", "3.15")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(newprod.Name)
 
 	// products, err := pgdb.Query.ListProducts(ctx, joe.ID)
 	// if err != nil {

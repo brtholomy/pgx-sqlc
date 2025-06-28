@@ -1,0 +1,66 @@
+package pages
+
+import (
+	"pgx-sqlc/ui/layouts"
+	"pgx-sqlc/ui/templui/components/button"
+	"pgx-sqlc/ui/templui/components/input"
+	"pgx-sqlc/ui/templui/components/form"
+)
+
+// templ Qbo(output string) {
+// 		@layouts.BaseLayout() {
+// 				<pre><code>{ output }</code></pre>
+// 		}
+// }
+
+templ Qbo(amount, resp string) {
+	@layouts.BaseLayout() {
+		<div class="w-full max-w-sm">
+			<form
+			 action="/qbo"
+			 method="POST"
+			 hx-post="/qbo"
+			 hx-select="#amount"
+			 hx-target="#amount"
+			 hx-swap="innerHTML"
+				>
+				@form.Item() {
+					@form.ItemFlex() {
+						@form.Label(form.LabelProps{
+							For: "amount-form",
+						}) {
+							Amount
+						}
+						@input.Input(input.Props{
+							ID:          "amount-form",
+							Attributes: templ.Attributes{
+								"name": "amount",
+								"step": "0.01",
+								"min": "0.00",
+							},
+							Type:        input.TypeNumber,
+							Placeholder: "0.00",
+						})
+						@button.Button(button.Props{
+							Type:  button.TypeSubmit,
+							Class: "flex items-center gap-2",
+						}) {
+							Submit
+						}
+					}
+					@form.Description() {
+						amount form
+					}
+				}
+			</form>
+		</div>
+
+		<div id="amount">
+			<h2> Received back from QBO API
+			</h2>
+			<div>amount: { amount }</div>
+			<pre>resp: { resp }</pre>
+		</div>
+
+	}
+}
