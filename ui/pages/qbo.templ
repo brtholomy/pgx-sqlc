@@ -5,15 +5,17 @@ import (
 	"pgx-sqlc/ui/templui/components/button"
 	"pgx-sqlc/ui/templui/components/input"
 	"pgx-sqlc/ui/templui/components/form"
+
+	quickbooks "github.com/rwestlund/quickbooks-go"
 )
 
-// templ Qbo(output string) {
-// 		@layouts.BaseLayout() {
-// 				<pre><code>{ output }</code></pre>
-// 		}
-// }
+type QboInvoiceResp struct {
+	Amount     string
+	InvoiceStr string
+	Invoice    *quickbooks.Invoice
+}
 
-templ Qbo(amount, resp string) {
+templ Qbo(resp QboInvoiceResp) {
 	@layouts.BaseLayout() {
 		<div class="w-full max-w-sm">
 			<form
@@ -58,8 +60,8 @@ templ Qbo(amount, resp string) {
 		<div id="amount">
 			<h2> Received back from QBO API
 			</h2>
-			<div>amount: { amount }</div>
-			<pre>resp: { resp }</pre>
+			<div>amount: { resp.Amount }</div>
+			<pre>resp: { resp.InvoiceStr }</pre>
 		</div>
 
 	}

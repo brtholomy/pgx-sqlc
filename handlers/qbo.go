@@ -54,12 +54,6 @@ func fillInvoice(amount string) quickbooks.Invoice {
 	return invoice
 }
 
-type QboInvoiceResp struct {
-	Amount     string
-	InvoiceStr string
-	Invoice    *quickbooks.Invoice
-}
-
 // TODO: is a http.Handler type preferable because it could store the qbo client and other reusables?
 
 // // http.Handler:
@@ -99,7 +93,7 @@ type QboInvoiceResp struct {
 // //////////////////////////////////////////////////////////
 // HandleFunc versions:
 func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *quickbooks.Invoice) {
-	var resp QboInvoiceResp
+	var resp pages.QboInvoiceResp
 	if invoice != nil {
 		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
 		if err != nil {
@@ -109,7 +103,8 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *quickbooks.I
 		resp.Invoice = invoice
 		resp.Amount = string(invoice.TotalAmt)
 	}
-	component := pages.Qbo(resp.Amount, resp.InvoiceStr)
+	// spitting out component is not necessary, just for clarity:
+	component := pages.Qbo(resp)
 	component.Render(r.Context(), w)
 }
 
@@ -120,6 +115,7 @@ func QboGetHandler(w http.ResponseWriter, r *http.Request) {
 func QboPostHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
+	// TODO: handle more than just amount:
 	amount := ""
 	if r.Form.Has("amount") {
 		amount = r.Form.Get("amount")
@@ -128,6 +124,7 @@ func QboPostHandler(w http.ResponseWriter, r *http.Request) {
 	client := setupQboClient()
 	invoice := fillInvoice(amount)
 	resp, err := client.CreateInvoice(&invoice)
+	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)
 	}
