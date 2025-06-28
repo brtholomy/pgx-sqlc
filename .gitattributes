@@ -1,0 +1,2 @@
+# skip diff for go.sum
+go.sum -diff
