@@ -48,12 +48,13 @@ func main() {
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
 
 	// http.Handler implementations:
-	// mux.Handle("GET /qbo", handlers.NewQboHandler(handlers.GetInvoice))
-	// mux.Handle("POST /qbo", handlers.NewQboHandler(handlers.ProcessInvoice))
+	c := handlers.SetupQboClient()
+	mux.Handle("GET /qbo", handlers.NewQboHandler(handlers.GetHandleInvoice, c))
+	mux.Handle("POST /qbo", handlers.NewQboHandler(handlers.PostHandleInvoice, c))
 
 	// HandleFunc versions:
-	mux.HandleFunc("GET /qbo", handlers.QboGetHandler)
-	mux.HandleFunc("POST /qbo", handlers.QboPostHandler)
+	// mux.HandleFunc("GET /qbo", handlers.QboGetHandler)
+	// mux.HandleFunc("POST /qbo", handlers.QboPostHandler)
 
 	fmt.Println("Server is running on http://localhost:8090")
 	http.ListenAndServe(":8090", mux)

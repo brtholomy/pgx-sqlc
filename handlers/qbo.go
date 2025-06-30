@@ -7,19 +7,19 @@ import (
 
 	"pgx-sqlc/ui/pages"
 
-	quickbooks "github.com/rwestlund/quickbooks-go"
+	qbo "github.com/rwestlund/quickbooks-go"
 )
 
-func loadClient(token *quickbooks.BearerToken) (c *quickbooks.Client, err error) {
+func loadClient(token *qbo.BearerToken) (c *qbo.Client, err error) {
 	clientId := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("SECRET")
 	realmId := os.Getenv("REALM_ID")
-	return quickbooks.NewClient(clientId, clientSecret, realmId, false, "", token)
+	return qbo.NewClient(clientId, clientSecret, realmId, false, "", token)
 }
 
-func setupQboClient() *quickbooks.Client {
+func SetupQboClient() *qbo.Client {
 	// FIXME: load from DB:
-	token := quickbooks.BearerToken{
+	token := qbo.BearerToken{
 		RefreshToken: os.Getenv("REFRESH_TOKEN"),
 		AccessToken:  os.Getenv("ACCESS_TOKEN"),
 	}
@@ -45,8 +45,8 @@ func setupQboClient() *quickbooks.Client {
 	return client
 }
 
-func fillInvoice(amount string) quickbooks.Invoice {
-	var invoice quickbooks.Invoice
+func fillInvoice(amount string) qbo.Invoice {
+	var invoice qbo.Invoice
 	if err := json.Unmarshal([]byte(INVOICE), &invoice); err != nil {
 		panic(err)
 	}
@@ -54,45 +54,63 @@ func fillInvoice(amount string) quickbooks.Invoice {
 	return invoice
 }
 
-// TODO: is a http.Handler type preferable because it could store the qbo client and other reusables?
-
-// // http.Handler:
+// //////////////////////////////////////////////////////////
+// Interface version
+// http.Handler:
 // type Handler interface {
-//     ServeHTTP(ResponseWriter, *Request)
+// 	ServeHTTP(ResponseWriter, *Request)
 // }
 
-// func NewQboHandler(process func(*http.Request) QboInvoiceResp) QboHandler {
-// 	return QboHandler{Process: process}
-// }
+// FIXME: this pattern seems wrong.
+// Passing the client to the constructor is correct.
+// Passing the function to the constructor is correct.
+// But passing the client through to the function seems wrong? I wanted to use the struct client
+// field from within the qh.QboPostHandler method. But how would I pass a method of an object to its
+// own constructor?
+//
+// Or do I need a type for each endpoint? That's not very DRY.
+// QboGetHandler
+// NewQboGetHandler(client)
+type QboHandler struct {
+	Process func(w http.ResponseWriter, r *http.Request, c *qbo.Client)
+	client  *qbo.Client
+}
 
-// type QboHandler struct {
-// 	// gets called within the ServeHTTP() method.
-// 	Process func(r *http.Request) QboInvoiceResp
-// }
+func NewQboHandler(process func(w http.ResponseWriter, r *http.Request, c *qbo.Client), client *qbo.Client) QboHandler {
+	return QboHandler{Process: process, client: client}
+}
 
-// // implements the HTTP handler interface on the QboHandler type.
-// func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	// NOTE: can pass in http.Request fields and methods.
-// 	// TODO: change this signature from returning a string.
-// 	resp := qh.Process(r)
-// 	pages.Qbo(resp.Amount, resp.Resp).Render(r.Context(), w)
-// }
+// implements the HTTP handler interface on the QboHandler type.
+func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	qh.Process(w, r, qh.client)
+}
 
-// func GetInvoice(r *http.Request, amount string, invoice *quickbooks.Invoice) QboInvoiceResp {
-// 	var resp QboInvoiceResp
-// 	if invoice != nil {
-// 		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		invstr = string(jsonBytes)
-// 	}
-// 	return resp
-// }
+// NOTE: this isn't a method so it can be passed to the constructor:
+func GetHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
+	handleInvoice(w, r, nil)
+}
+
+func PostHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
+	r.ParseForm()
+
+	// TODO: handle more than just amount:
+	amount := ""
+	if r.Form.Has("amount") {
+		amount = r.Form.Get("amount")
+	}
+
+	invoice := fillInvoice(amount)
+	resp, err := c.CreateInvoice(&invoice)
+	// TODO: what to do with errors? handleError()?
+	if err != nil {
+		panic(err)
+	}
+	handleInvoice(w, r, resp)
+}
 
 // //////////////////////////////////////////////////////////
 // HandleFunc versions:
-func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *quickbooks.Invoice) {
+func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice) {
 	var resp pages.QboInvoiceResp
 	if invoice != nil {
 		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
@@ -121,7 +139,7 @@ func QboPostHandler(w http.ResponseWriter, r *http.Request) {
 		amount = r.Form.Get("amount")
 	}
 
-	client := setupQboClient()
+	client := SetupQboClient()
 	invoice := fillInvoice(amount)
 	resp, err := client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
