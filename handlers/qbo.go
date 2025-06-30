@@ -10,6 +10,9 @@ import (
 	qbo "github.com/rwestlund/quickbooks-go"
 )
 
+// //////////////////////////////////////////////////////////
+// QBO client
+
 func loadClient(token *qbo.BearerToken) (c *qbo.Client, err error) {
 	clientId := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("SECRET")
@@ -45,6 +48,9 @@ func SetupQboClient() *qbo.Client {
 	return client
 }
 
+// //////////////////////////////////////////////////////////
+// Invoice handling
+
 func fillInvoice(amount string) qbo.Invoice {
 	var invoice qbo.Invoice
 	if err := json.Unmarshal([]byte(INVOICE), &invoice); err != nil {
@@ -52,6 +58,22 @@ func fillInvoice(amount string) qbo.Invoice {
 	}
 	invoice.Line[0].Amount = json.Number(amount)
 	return invoice
+}
+
+func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice) {
+	var resp pages.QboInvoiceResp
+	if invoice != nil {
+		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		resp.InvoiceStr = string(jsonBytes)
+		resp.Invoice = invoice
+		resp.Amount = string(invoice.TotalAmt)
+	}
+	// spitting out component is not necessary, just for clarity:
+	component := pages.Qbo(resp)
+	component.Render(r.Context(), w)
 }
 
 // //////////////////////////////////////////////////////////
@@ -106,21 +128,6 @@ func PostHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
 
 // //////////////////////////////////////////////////////////
 // HandleFunc versions:
-func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice) {
-	var resp pages.QboInvoiceResp
-	if invoice != nil {
-		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		resp.InvoiceStr = string(jsonBytes)
-		resp.Invoice = invoice
-		resp.Amount = string(invoice.TotalAmt)
-	}
-	// spitting out component is not necessary, just for clarity:
-	component := pages.Qbo(resp)
-	component.Render(r.Context(), w)
-}
 
 func QboGetHandler(w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
