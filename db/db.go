@@ -1,3 +1,6 @@
+// This package holds first-level wrappers for pgx + sqlc.
+//
+// The .sql templates live here, which sqlc uses to generate its code.
 package db
 
 import (
