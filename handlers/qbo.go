@@ -73,16 +73,12 @@ func fillInvoice(amount string) qbo.Invoice {
 // NewQboGetHandler(client)
 type QboHandler struct {
 	Process func(w http.ResponseWriter, r *http.Request, c *qbo.Client)
-	client  *qbo.Client
-}
-
-func NewQboHandler(process func(w http.ResponseWriter, r *http.Request, c *qbo.Client), client *qbo.Client) QboHandler {
-	return QboHandler{Process: process, client: client}
+	Client  *qbo.Client
 }
 
 // implements the HTTP handler interface on the QboHandler type.
 func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	qh.Process(w, r, qh.client)
+	qh.Process(w, r, qh.Client)
 }
 
 // NOTE: this isn't a method so it can be passed to the constructor:
