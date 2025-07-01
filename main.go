@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"pgx-sqlc/handlers"
+	"pgx-sqlc/qbo"
 	"pgx-sqlc/ui/assets"
 	"pgx-sqlc/ui/pages"
 
@@ -48,13 +48,13 @@ func main() {
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
 
 	// http.Handler implementations:
-	wrapper := handlers.QboWrapper{handlers.SetupQboClient()}
-	mux.Handle("GET /qbo", handlers.GetQboHandler{&wrapper})
-	mux.Handle("POST /qbo", handlers.PostQboHandler{&wrapper})
+	wrapper := qbo.QboWrapper{qbo.SetupQboClient()}
+	mux.Handle("GET /qbo", qbo.GetQboHandler{&wrapper})
+	mux.Handle("POST /qbo", qbo.PostQboHandler{&wrapper})
 
 	// HandleFunc versions:
-	// mux.HandleFunc("GET /qbo", handlers.QboGetHandler)
-	// mux.HandleFunc("POST /qbo", handlers.QboPostHandler)
+	// mux.HandleFunc("GET /qbo", qbo.QboGetHandler)
+	// mux.HandleFunc("POST /qbo", qbo.QboPostHandler)
 
 	fmt.Println("Server is running on http://localhost:8090")
 	http.ListenAndServe(":8090", mux)

@@ -1,59 +1,19 @@
-package handlers
+package qbo
 
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 
 	"pgx-sqlc/ui/pages"
 
-	qbo "github.com/rwestlund/quickbooks-go"
+	qbohelp "github.com/rwestlund/quickbooks-go"
 )
-
-// //////////////////////////////////////////////////////////
-// QBO client
-
-func loadClient(token *qbo.BearerToken) (c *qbo.Client, err error) {
-	clientId := os.Getenv("CLIENT_ID")
-	clientSecret := os.Getenv("SECRET")
-	realmId := os.Getenv("REALM_ID")
-	// TODO: handle dev vs prod:
-	return qbo.NewClient(clientId, clientSecret, realmId, false, "", token)
-}
-
-func SetupQboClient() *qbo.Client {
-	// FIXME: load from DB:
-	token := qbo.BearerToken{
-		RefreshToken: os.Getenv("REFRESH_TOKEN"),
-		AccessToken:  os.Getenv("ACCESS_TOKEN"),
-	}
-
-	client, err := loadClient(&token)
-	if err != nil {
-		panic(err)
-	}
-
-	// To do first when you receive the authorization code from quickbooks callback
-	// authorizationCode := "XAB11746551225hXNdSW2iGUcTdTLImx5gzNIF59QnhMmM40tX"
-	// redirectURI := "https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl"
-	// bearerToken, err := client.RetrieveBearerToken(authorizationCode, redirectURI)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// TODO: figure out how often to refresh?
-	_, err = client.RefreshToken(token.RefreshToken)
-	if err != nil {
-		panic(err)
-	}
-	return client
-}
 
 // //////////////////////////////////////////////////////////
 // Invoice handling
 
-func fillInvoice(amount string) qbo.Invoice {
-	var invoice qbo.Invoice
+func fillInvoice(amount string) qbohelp.Invoice {
+	var invoice qbohelp.Invoice
 	if err := json.Unmarshal([]byte(INVOICE), &invoice); err != nil {
 		panic(err)
 	}
@@ -61,7 +21,7 @@ func fillInvoice(amount string) qbo.Invoice {
 	return invoice
 }
 
-func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice) {
+func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbohelp.Invoice) {
 	var resp pages.QboInvoiceResp
 	if invoice != nil {
 		jsonBytes, err := json.MarshalIndent(invoice, "", "  ")
@@ -87,16 +47,16 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice)
 // FIXME: now I've got a struct wrapper passed to separate http.Handler implementations.
 // Is this better?
 type QboWrapper struct {
-	Client *qbo.Client
+	Client *qbohelp.Client
 	// ErrorHandler func(r *http.Request, err error) http.Handler
 }
 
 type GetQboHandler struct {
-	Qbo *QboWrapper
+	Wrapper *QboWrapper
 }
 
 type PostQboHandler struct {
-	Qbo *QboWrapper
+	Wrapper *QboWrapper
 }
 
 func (h GetQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +73,7 @@ func (h PostQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice := fillInvoice(amount)
-	resp, err := h.Qbo.Client.CreateInvoice(&invoice)
+	resp, err := h.Wrapper.Client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)
