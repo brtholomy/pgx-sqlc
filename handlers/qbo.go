@@ -94,21 +94,22 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice)
 // QboGetHandler
 // NewQboGetHandler(client)
 type QboHandler struct {
-	Process func(w http.ResponseWriter, r *http.Request, c *qbo.Client)
+	Process func(qh *QboHandler, w http.ResponseWriter, r *http.Request)
 	Client  *qbo.Client
 }
 
 // implements the HTTP handler interface on the QboHandler type.
 func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	qh.Process(w, r, qh.Client)
+	// NOTE: passing itself as parameter is essentially what a method receiver does:
+	qh.Process(&qh, w, r)
 }
 
 // NOTE: this isn't a method so it can be passed to the constructor:
-func GetHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
+func GetHandleInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
 }
 
-func PostHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
+func PostHandleInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// TODO: handle more than just amount:
@@ -118,7 +119,7 @@ func PostHandleInvoice(w http.ResponseWriter, r *http.Request, c *qbo.Client) {
 	}
 
 	invoice := fillInvoice(amount)
-	resp, err := c.CreateInvoice(&invoice)
+	resp, err := qh.Client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)
