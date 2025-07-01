@@ -38,9 +38,9 @@ func SetupQboClient() *qbohelp.Client {
 	// }
 
 	// TODO: figure out how often to refresh?
-	_, err = client.RefreshToken(token.RefreshToken)
-	if err != nil {
-		panic(err)
-	}
+	// _, err = client.RefreshToken(token.RefreshToken)
+	// if err != nil {
+	// 	panic(err)
+	// }
 	return client
 }

@@ -2,6 +2,7 @@ package qbo
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"pgx-sqlc/ui/pages"
@@ -47,18 +48,33 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbohelp.Invo
 // FIXME: now I've got a struct wrapper passed to separate http.Handler implementations.
 // Is this better?
 type QboWrapper struct {
-	Client *qbohelp.Client
+	client *qbohelp.Client
 	// ErrorHandler func(r *http.Request, err error) http.Handler
 }
 
+func InitWrapper(c *qbohelp.Client) (QboWrapper, error) {
+	if c == nil {
+		return QboWrapper{}, errors.New("missing client!")
+	}
+	return QboWrapper{
+		client: c,
+	}, nil
+}
+
 type GetInvoiceHandler struct {
-	// FIXME: This can cause a nil reference when initialized without passing this.
-	// Should probably have a constructor with private fields.
-	Wrapper QboWrapper
+	wrapper QboWrapper
 }
 
 type PostInvoiceHandler struct {
-	Wrapper QboWrapper
+	wrapper QboWrapper
+}
+
+func InitGetInvoiceHandler(w QboWrapper) GetInvoiceHandler {
+	return GetInvoiceHandler{w}
+}
+
+func InitPostInvoiceHandler(w QboWrapper) PostInvoiceHandler {
+	return PostInvoiceHandler{w}
 }
 
 func (h GetInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +91,7 @@ func (h PostInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice := fillInvoice(amount)
-	resp, err := h.Wrapper.Client.CreateInvoice(&invoice)
+	resp, err := h.wrapper.client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)
