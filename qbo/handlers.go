@@ -58,11 +58,15 @@ func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	qh.process(&qh, w, r)
 }
 
+// Sets up a QboHandler while checking dependencies.
 func InitHandler(
 	c *qbohelp.Client,
 	p func(qh *QboHandler, w http.ResponseWriter, r *http.Request)) (QboHandler, error) {
 	if c == nil {
 		return QboHandler{}, errors.New("missing client!")
+	}
+	if p == nil {
+		return QboHandler{}, errors.New("missing function!")
 	}
 	return QboHandler{
 		Client:  c,

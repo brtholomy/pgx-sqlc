@@ -19,12 +19,12 @@ func loadClient(token *qbohelp.BearerToken) (c *qbohelp.Client, err error) {
 
 func SetupQboClient() *qbohelp.Client {
 	// FIXME: load from DB:
-	token := qbohelp.BearerToken{
+	bearer_token := &qbohelp.BearerToken{
 		RefreshToken: os.Getenv("REFRESH_TOKEN"),
 		AccessToken:  os.Getenv("ACCESS_TOKEN"),
 	}
 
-	client, err := loadClient(&token)
+	client, err := loadClient(bearer_token)
 	if err != nil {
 		panic(err)
 	}
@@ -38,9 +38,9 @@ func SetupQboClient() *qbohelp.Client {
 	// }
 
 	// TODO: figure out how often to refresh?
-	// _, err = client.RefreshToken(token.RefreshToken)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	bearer_token, err = client.RefreshToken(bearer_token.RefreshToken)
+	if err != nil {
+		panic(err)
+	}
 	return client
 }
