@@ -6,8 +6,8 @@ templ:
 
 server:
 	air \
-	--build.cmd "go build -o tmp/bin/main ." \
-	--build.bin "tmp/bin/main" \
+	--build.cmd "go build -o /tmp/airmain ." \
+	--build.bin "/tmp/airmain" \
 	--build.delay "100" \
 	--build.exclude_dir "node_modules" \
 	--build.include_ext "go" \
