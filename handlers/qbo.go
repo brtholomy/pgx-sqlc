@@ -17,6 +17,7 @@ func loadClient(token *qbo.BearerToken) (c *qbo.Client, err error) {
 	clientId := os.Getenv("CLIENT_ID")
 	clientSecret := os.Getenv("SECRET")
 	realmId := os.Getenv("REALM_ID")
+	// TODO: handle dev vs prod:
 	return qbo.NewClient(clientId, clientSecret, realmId, false, "", token)
 }
 
@@ -83,33 +84,26 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbo.Invoice)
 // 	ServeHTTP(ResponseWriter, *Request)
 // }
 
-// FIXME: this pattern seems wrong.
-// Passing the client to the constructor is correct.
-// Passing the function to the constructor is correct.
-// But passing the client through to the function seems wrong? I wanted to use the struct client
-// field from within the qh.QboPostHandler method. But how would I pass a method of an object to its
-// own constructor?
-//
-// Or do I need a type for each endpoint? That's not very DRY.
-// QboGetHandler
-// NewQboGetHandler(client)
-type QboHandler struct {
-	Process func(qh *QboHandler, w http.ResponseWriter, r *http.Request)
-	Client  *qbo.Client
+// FIXME: now I've got a struct wrapper passed to separate http.Handler implementations.
+// Is this better?
+type QboWrapper struct {
+	Client *qbo.Client
+	// ErrorHandler func(r *http.Request, err error) http.Handler
 }
 
-// implements the HTTP handler interface on the QboHandler type.
-func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// NOTE: passing itself as parameter is essentially what a method receiver does:
-	qh.Process(&qh, w, r)
+type GetQboHandler struct {
+	Qbo *QboWrapper
 }
 
-// NOTE: this isn't a method so it can be passed to the constructor:
-func GetHandleInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
+type PostQboHandler struct {
+	Qbo *QboWrapper
+}
+
+func (h GetQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
 }
 
-func PostHandleInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
+func (h PostQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// TODO: handle more than just amount:
@@ -119,7 +113,7 @@ func PostHandleInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice := fillInvoice(amount)
-	resp, err := qh.Client.CreateInvoice(&invoice)
+	resp, err := h.Qbo.Client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)

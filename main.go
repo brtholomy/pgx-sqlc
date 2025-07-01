@@ -48,9 +48,9 @@ func main() {
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
 
 	// http.Handler implementations:
-	c := handlers.SetupQboClient()
-	mux.Handle("GET /qbo", handlers.QboHandler{handlers.GetHandleInvoice, c})
-	mux.Handle("POST /qbo", handlers.QboHandler{handlers.PostHandleInvoice, c})
+	wrapper := handlers.QboWrapper{handlers.SetupQboClient()}
+	mux.Handle("GET /qbo", handlers.GetQboHandler{&wrapper})
+	mux.Handle("POST /qbo", handlers.PostQboHandler{&wrapper})
 
 	// HandleFunc versions:
 	// mux.HandleFunc("GET /qbo", handlers.QboGetHandler)
