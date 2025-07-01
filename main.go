@@ -49,12 +49,16 @@ func main() {
 
 	// http.Handler implementations:
 	c := qbo.SetupQboClient()
-	wrapper, err := qbo.InitWrapper(c)
+	geth, err := qbo.InitHandler(c, qbo.GetInvoice)
 	if err != nil {
 		panic(err)
 	}
-	mux.Handle("GET /qbo", qbo.InitGetInvoiceHandler(wrapper))
-	mux.Handle("POST /qbo", qbo.InitPostInvoiceHandler(wrapper))
+	posth, err := qbo.InitHandler(c, qbo.PostInvoice)
+	if err != nil {
+		panic(err)
+	}
+	mux.Handle("GET /qbo", geth)
+	mux.Handle("POST /qbo", posth)
 
 	// HandleFunc versions:
 	// mux.HandleFunc("GET /qbo", qbo.GetInvoiceFunc)

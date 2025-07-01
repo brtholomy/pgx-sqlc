@@ -45,43 +45,36 @@ func handleInvoice(w http.ResponseWriter, r *http.Request, invoice *qbohelp.Invo
 // 	ServeHTTP(ResponseWriter, *Request)
 // }
 
-// FIXME: now I've got a struct wrapper passed to separate http.Handler implementations.
-// Is this better?
-type QboWrapper struct {
-	client *qbohelp.Client
-	// ErrorHandler func(r *http.Request, err error) http.Handler
+// http.Handler that takes a function as dependency. See InitHandler()
+type QboHandler struct {
+	process func(qh *QboHandler, w http.ResponseWriter, r *http.Request)
+	// Public because the process function needs it.
+	Client *qbohelp.Client
 }
 
-func InitWrapper(c *qbohelp.Client) (QboWrapper, error) {
+// implements the HTTP handler interface on the QboHandler type.
+func (qh QboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// NOTE: passing itself as parameter is essentially what a method receiver does:
+	qh.process(&qh, w, r)
+}
+
+func InitHandler(
+	c *qbohelp.Client,
+	p func(qh *QboHandler, w http.ResponseWriter, r *http.Request)) (QboHandler, error) {
 	if c == nil {
-		return QboWrapper{}, errors.New("missing client!")
+		return QboHandler{}, errors.New("missing client!")
 	}
-	return QboWrapper{
-		client: c,
+	return QboHandler{
+		Client:  c,
+		process: p,
 	}, nil
 }
 
-type GetInvoiceHandler struct {
-	wrapper QboWrapper
-}
-
-type PostInvoiceHandler struct {
-	wrapper QboWrapper
-}
-
-func InitGetInvoiceHandler(w QboWrapper) GetInvoiceHandler {
-	return GetInvoiceHandler{w}
-}
-
-func InitPostInvoiceHandler(w QboWrapper) PostInvoiceHandler {
-	return PostInvoiceHandler{w}
-}
-
-func (h GetInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func GetInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
 }
 
-func (h PostInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func PostInvoice(qh *QboHandler, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// TODO: handle more than just amount:
@@ -91,7 +84,7 @@ func (h PostInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	invoice := fillInvoice(amount)
-	resp, err := h.wrapper.client.CreateInvoice(&invoice)
+	resp, err := qh.Client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?
 	if err != nil {
 		panic(err)
