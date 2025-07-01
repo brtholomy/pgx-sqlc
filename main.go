@@ -49,12 +49,12 @@ func main() {
 
 	// http.Handler implementations:
 	wrapper := qbo.QboWrapper{qbo.SetupQboClient()}
-	mux.Handle("GET /qbo", qbo.GetQboHandler{&wrapper})
-	mux.Handle("POST /qbo", qbo.PostQboHandler{&wrapper})
+	mux.Handle("GET /qbo", qbo.GetInvoiceHandler{wrapper})
+	mux.Handle("POST /qbo", qbo.PostInvoiceHandler{wrapper})
 
 	// HandleFunc versions:
-	// mux.HandleFunc("GET /qbo", qbo.QboGetHandler)
-	// mux.HandleFunc("POST /qbo", qbo.QboPostHandler)
+	// mux.HandleFunc("GET /qbo", qbo.GetInvoiceFunc)
+	// mux.HandleFunc("POST /qbo", qbo.PostInvoiceFunc)
 
 	fmt.Println("Server is running on http://localhost:8090")
 	http.ListenAndServe(":8090", mux)

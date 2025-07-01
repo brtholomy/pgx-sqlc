@@ -51,19 +51,21 @@ type QboWrapper struct {
 	// ErrorHandler func(r *http.Request, err error) http.Handler
 }
 
-type GetQboHandler struct {
-	Wrapper *QboWrapper
+type GetInvoiceHandler struct {
+	// FIXME: This can cause a nil reference when initialized without passing this.
+	// Should probably have a constructor with private fields.
+	Wrapper QboWrapper
 }
 
-type PostQboHandler struct {
-	Wrapper *QboWrapper
+type PostInvoiceHandler struct {
+	Wrapper QboWrapper
 }
 
-func (h GetQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h GetInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
 }
 
-func (h PostQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h PostInvoiceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// TODO: handle more than just amount:
@@ -84,11 +86,11 @@ func (h PostQboHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // //////////////////////////////////////////////////////////
 // HandleFunc versions:
 
-func QboGetHandler(w http.ResponseWriter, r *http.Request) {
+func GetInvoiceFunc(w http.ResponseWriter, r *http.Request) {
 	handleInvoice(w, r, nil)
 }
 
-func QboPostHandler(w http.ResponseWriter, r *http.Request) {
+func PostInvoiceFunc(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	// TODO: handle more than just amount:
