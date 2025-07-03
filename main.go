@@ -19,14 +19,12 @@ const RENDER_ENV_PATH = "/etc/secrets/.env"
 
 func initDotEnv() error {
 	var err error
-	if err = godotenv.Load(RENDER_ENV_PATH); err != nil {
-		log.Println("Error loading prod .env file")
+	if err = godotenv.Load(RENDER_ENV_PATH); err == nil {
+		return nil
+	} else if err = godotenv.Load(); err == nil {
+		return nil
 	}
-	if err = godotenv.Load(); err != nil {
-		log.Println("Error loading local .env file")
-		return errors.New("Could not load .env file")
-	}
-	return nil
+	return errors.New("Could not load .env file")
 }
 
 func setupAssetsRoutes(mux *http.ServeMux) {
@@ -51,7 +49,7 @@ func setupAssetsRoutes(mux *http.ServeMux) {
 }
 
 func main() {
-	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	log.SetFlags(log.Lshortfile)
 	if err := initDotEnv(); err != nil {
 		panic(err)
 	}
