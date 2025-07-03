@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -13,11 +15,18 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func initDotEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
+const RENDER_ENV_PATH = "/etc/secrets/.env"
+
+func initDotEnv() error {
+	var err error
+	if err = godotenv.Load(RENDER_ENV_PATH); err != nil {
+		log.Println("Error loading prod .env file")
 	}
+	if err = godotenv.Load(); err != nil {
+		log.Println("Error loading local .env file")
+		return errors.New("Could not load .env file")
+	}
+	return nil
 }
 
 func setupAssetsRoutes(mux *http.ServeMux) {
@@ -42,7 +51,10 @@ func setupAssetsRoutes(mux *http.ServeMux) {
 }
 
 func main() {
-	initDotEnv()
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	if err := initDotEnv(); err != nil {
+		panic(err)
+	}
 	mux := http.NewServeMux()
 	setupAssetsRoutes(mux)
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
