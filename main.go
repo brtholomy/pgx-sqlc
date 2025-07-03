@@ -56,37 +56,6 @@ func main() {
 	var isdev = os.Getenv("GO_ENV") != "production"
 
 	////////////////////////////////////////
-	// handlers
-	mux := http.NewServeMux()
-	setupAssetsRoutes(mux, isdev)
-	mux.Handle("GET /", templ.Handler(pages.Landing()))
-
-	// http.Handler implementations:
-	c, err := qbo.SetupQboClient()
-	if err != nil {
-		panic(err)
-	}
-	geth, err := qbo.InitHandler(c, qbo.GetInvoice)
-	if err != nil {
-		panic(err)
-	}
-	posth, err := qbo.InitHandler(c, qbo.PostInvoice)
-	if err != nil {
-		panic(err)
-	}
-	mux.Handle("GET /qbo", geth)
-	mux.Handle("POST /qbo", posth)
-
-	// HandleFunc versions:
-	// mux.HandleFunc("GET /qbo", qbo.GetInvoiceFunc)
-	// mux.HandleFunc("POST /qbo", qbo.PostInvoiceFunc)
-
-	http.ListenAndServe(":8090", mux)
-	if isdev {
-		fmt.Println("Server is running on http://localhost:8090")
-	}
-
-	////////////////////////////////////////
 	// DB code:
 	ctx := context.Background()
 	db_url := "user=bth database=testdb"
@@ -112,4 +81,36 @@ func main() {
 		panic(err)
 	}
 	log.Println(products)
+
+	////////////////////////////////////////
+	// handlers
+	mux := http.NewServeMux()
+	setupAssetsRoutes(mux, isdev)
+	mux.Handle("GET /", templ.Handler(pages.Landing()))
+
+	// http.Handler implementations:
+	c, err := qbo.SetupQboClient()
+	if err != nil {
+		panic(err)
+	}
+	geth, err := qbo.InitHandler(c, qbo.GetInvoice)
+	if err != nil {
+		panic(err)
+	}
+	posth, err := qbo.InitHandler(c, qbo.PostInvoice)
+	if err != nil {
+		panic(err)
+	}
+	mux.Handle("GET /qbo", geth)
+	mux.Handle("POST /qbo", posth)
+
+	// HandleFunc versions:
+	// mux.HandleFunc("GET /qbo", qbo.GetInvoiceFunc)
+	// mux.HandleFunc("POST /qbo", qbo.PostInvoiceFunc)
+
+	if isdev {
+		fmt.Println("Server is running on http://localhost:8090")
+	}
+	http.ListenAndServe(":8090", mux)
+
 }
