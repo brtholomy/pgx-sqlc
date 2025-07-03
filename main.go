@@ -60,8 +60,13 @@ func main() {
 	ctx := context.Background()
 	db_url := "user=bth database=testdb"
 	if !isdev {
-		db_url = os.Getenv("RENDER_INTERNAL_DB")
+		if tmp, ok := os.LookupEnv("RENDER_INTERNAL_DB"); ok {
+			db_url = tmp
+		} else {
+			log.Fatal("failed to load RENDER_INTERNAL_DB")
+		}
 	}
+	log.Printf("db_url: %#v\n", db_url)
 	pgdb := db.NewDatabase(ctx, db_url)
 
 	joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
