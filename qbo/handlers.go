@@ -112,7 +112,10 @@ func PostInvoiceFunc(w http.ResponseWriter, r *http.Request) {
 		amount = r.Form.Get("amount")
 	}
 
-	client := SetupQboClient()
+	client, err := SetupQboClient()
+	if err != nil {
+		panic(err)
+	}
 	invoice := fillInvoice(amount)
 	resp, err := client.CreateInvoice(&invoice)
 	// TODO: what to do with errors? handleError()?

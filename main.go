@@ -58,7 +58,10 @@ func main() {
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
 
 	// http.Handler implementations:
-	c := qbo.SetupQboClient()
+	c, err := qbo.SetupQboClient()
+	if err != nil {
+		panic(err)
+	}
 	geth, err := qbo.InitHandler(c, qbo.GetInvoice)
 	if err != nil {
 		panic(err)
