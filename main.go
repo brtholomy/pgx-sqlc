@@ -19,6 +19,10 @@ import (
 
 const RENDER_ENV_PATH = "/etc/secrets/.env"
 
+// FIXME: yeah
+const LOCALJOE = "0197ada4-5f8b-77d7-b039-5651eabf19e1"
+const REMOTEJOE = "0197d266-380a-741a-85f8-04fe8358be6b"
+
 func initDotEnv() error {
 	var err error
 	if err = godotenv.Load(RENDER_ENV_PATH); err == nil {
@@ -56,7 +60,7 @@ func main() {
 	var isdev = os.Getenv("GO_ENV") != "production"
 
 	////////////////////////////////////////
-	// DB code:
+	// setup DB
 	ctx := context.Background()
 	db_url := "user=bth database=testdb"
 	if !isdev {
@@ -69,31 +73,24 @@ func main() {
 	log.Printf("db_url: %#v\n", db_url)
 	pgdb := db.NewDatabase(ctx, db_url)
 
-	joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
-	// joe, err := db.GetUser(ctx, pgdb, "0197ada4-5f8b-77d7-b039-5651eabf19e1")
+	// TODO: something
+	// joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
+	if isdev {
+		joe, err := db.GetUser(ctx, pgdb, LOCALJOE)
+	} else {
+		joe, err := db.GetUser(ctx, pgdb, REMOTEJOE)
+	}
 	if err != nil {
 		panic(err)
 	}
 	udb := db.UserDatabase{&joe, pgdb}
-	newprod, err := udb.NewProduct(ctx, "stuff", "3.15")
+	productsh, err := db.InitHandler(&udb, db.GetProducts)
 	if err != nil {
 		panic(err)
 	}
-	log.Println(newprod.Name)
-
-	products, err := pgdb.Query.ListProducts(ctx, joe.ID)
-	if err != nil {
-		panic(err)
-	}
-	log.Println(products)
 
 	////////////////////////////////////////
-	// handlers
-	mux := http.NewServeMux()
-	setupAssetsRoutes(mux, isdev)
-	mux.Handle("GET /", templ.Handler(pages.Landing()))
-
-	// http.Handler implementations:
+	// QBO setup
 	c, err := qbo.SetupQboClient()
 	if err != nil {
 		panic(err)
@@ -106,13 +103,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	////////////////////////////////////////
+	// handlers
+	mux := http.NewServeMux()
+	setupAssetsRoutes(mux, isdev)
+
+	// default
+	mux.Handle("GET /", templ.Handler(pages.Landing()))
+	// DB
+	mux.Handle("GET /products", productsh)
+	// QBO
 	mux.Handle("GET /qbo", geth)
 	mux.Handle("POST /qbo", posth)
 
-	// HandleFunc versions:
-	// mux.HandleFunc("GET /qbo", qbo.GetInvoiceFunc)
-	// mux.HandleFunc("POST /qbo", qbo.PostInvoiceFunc)
-
+	// ListenAndServe
 	if isdev {
 		fmt.Println("Server is running on http://localhost:8090")
 	}

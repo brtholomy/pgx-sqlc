@@ -58,3 +58,11 @@ func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*s
 	}
 	return &newprod, nil
 }
+
+func (udb *UserDatabase) ListProducts(ctx context.Context) ([]sqlc.Product, error) {
+	products, err := udb.DB.Query.ListProducts(ctx, udb.User.ID)
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}

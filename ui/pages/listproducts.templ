@@ -1,0 +1,37 @@
+package pages
+
+import (
+	"pgx-sqlc/ui/layouts"
+	// "pgx-sqlc/ui/templui/components/button"
+	// "pgx-sqlc/ui/templui/components/input"
+	// "pgx-sqlc/ui/templui/components/form"
+	// "pgx-sqlc/db/sqlc"
+
+	// quickbooks "github.com/rwestlund/quickbooks-go"
+)
+
+// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
+// var S = fmt.Sprint
+// var F = fmt.Sprintf
+
+type Product struct {
+	Name string
+	Price string
+}
+
+templ ListProducts(products []Product) {
+	@layouts.BaseLayout() {
+		<table>
+			for _, p := range products {
+				<tr>
+					<td>
+						{p.Name}
+					</td>
+					<td>
+						{p.Price}
+					</td>
+				</tr>
+			}
+		</table>
+	}
+}
