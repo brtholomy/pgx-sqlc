@@ -80,40 +80,44 @@ templ ListProducts(products []Product) {
 				>
 				@form.Item() {
 					@form.ItemFlex() {
-						@form.Label(form.LabelProps{
-							For: "price-form",
-						}) {
-							Price
-						}
-						@input.Input(input.Props{
-							ID:          "price-form",
-							Attributes: templ.Attributes{
-								"name": "price",
-								"step": "0.01",
-								"min": "0.00",
-							},
-							Type:        input.TypeNumber,
-							Placeholder: "0.00",
-						})
-						@form.Label(form.LabelProps{
-							For: "name-form",
-						}) {
-							Product name
-						}
-						@input.Input(input.Props{
-							ID:          "name-form",
-							Attributes: templ.Attributes{
-								"name": "name",
-							},
-							Type:        input.TypeText,
-							Placeholder: "product name",
-						})
+						<div class="max-w-sm grid gap-2">
+							@form.Label(form.LabelProps{
+								For: "price-form",
+							}) {
+								Price
+							}
+							@input.Input(input.Props{
+								ID:          "price-form",
+								Attributes: templ.Attributes{
+									"name": "price",
+									"step": "0.01",
+									"min": "0.00",
+								},
+								Type:        input.TypeNumber,
+								Placeholder: "0.00",
+								Required: true,
+							})
+							@form.Label(form.LabelProps{
+								For: "name-form",
+							}) {
+								Product name
+							}
+							@input.Input(input.Props{
+								ID:          "name-form",
+								Attributes: templ.Attributes{
+									"name": "name",
+								},
+								Type:        input.TypeText,
+								Placeholder: "product name",
+								Required: true,
+							})
 						@button.Button(button.Props{
 							Type:  button.TypeSubmit,
 							Class: "flex items-center gap-2",
 						}) {
 							Submit
 						}
+						</div>
 					}
 					@form.Description() {
 						price form
