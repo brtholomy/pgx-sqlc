@@ -3,6 +3,7 @@ package layouts
 import (
 	"pgx-sqlc/ui/modules"
 	"pgx-sqlc/ui/templui/components/input"
+	"pgx-sqlc/ui/templui/components/label"
 )
 
 templ ThemeSwitcherScript() {
@@ -42,6 +43,7 @@ templ BaseLayout() {
 			<!-- Theme switcher script -->
 			@ThemeSwitcherScript()
 			@input.Script()
+			@label.Script()
 		</head>
 		<body
 			x-data="themeHandler"

@@ -24,7 +24,7 @@ func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 			log.Printf("Failed to parse price for: %#v. err: %v\n", p.Name, err)
 		} else {
 			// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
-			price := fmt.Sprintf("%f", pgtype_int.Float64)
+			price := fmt.Sprintf("%.2f", pgtype_int.Float64)
 			products = append(products, pages.Product{p.Name, price})
 		}
 	}
