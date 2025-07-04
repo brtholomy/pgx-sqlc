@@ -84,6 +84,13 @@ func main() {
 		panic(err)
 	}
 	udb := db.UserDatabase{&joe, pgdb}
+
+	newprod, err := udb.NewProduct(ctx, "bina's neener", "100.15")
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("newprod: %#v\n", newprod)
+
 	productsh, err := db.InitHandler(&udb, db.GetProducts)
 	if err != nil {
 		panic(err)
