@@ -75,11 +75,11 @@ func main() {
 
 	// TODO: something
 	// joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
-	if isdev {
-		joe, err := db.GetUser(ctx, pgdb, LOCALJOE)
-	} else {
-		joe, err := db.GetUser(ctx, pgdb, REMOTEJOE)
+	UUID := LOCALJOE
+	if !isdev {
+		UUID = REMOTEJOE
 	}
+	joe, err := db.GetUser(ctx, pgdb, UUID)
 	if err != nil {
 		panic(err)
 	}
