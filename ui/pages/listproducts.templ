@@ -2,17 +2,11 @@ package pages
 
 import (
 	"pgx-sqlc/ui/layouts"
-	// "pgx-sqlc/ui/templui/components/button"
-	// "pgx-sqlc/ui/templui/components/input"
-	// "pgx-sqlc/ui/templui/components/form"
-	// "pgx-sqlc/db/sqlc"
-
-	// quickbooks "github.com/rwestlund/quickbooks-go"
+	"pgx-sqlc/ui/templui/components/button"
+	"pgx-sqlc/ui/templui/components/form"
+	"pgx-sqlc/ui/templui/components/input"
+	"pgx-sqlc/ui/templui/components/table"
 )
-
-// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
-// var S = fmt.Sprint
-// var F = fmt.Sprintf
 
 type Product struct {
 	Name string
@@ -21,17 +15,112 @@ type Product struct {
 
 templ ListProducts(products []Product) {
 	@layouts.BaseLayout() {
-		<table>
-			for _, p := range products {
-				<tr>
-					<td>
-						{p.Name}
-					</td>
-					<td>
-						{p.Price}
-					</td>
-				</tr>
+
+		@table.Table() {
+			@table.Caption() {
+				All your products
 			}
-		</table>
+			@table.Header() {
+				@table.Row() {
+					@table.Head() {
+						Name
+					}
+					@table.Head() {
+						Price
+					}
+					// @table.Head() {
+					// 	Actions
+					// }
+				}
+			}
+			@table.Body() {
+
+				for _, p := range products {
+					@table.Row() {
+						@table.Cell() {
+							{p.Name}
+						}
+						@table.Cell() {
+							{p.Price}
+						}
+						// @table.Cell() {
+						// 	Edit
+						// }
+					}
+				}
+
+				// @table.Footer() {
+				// 	@table.Row() {
+				// 		@table.Head() {
+				// 			3 items
+				// 		}
+				// 		@table.Head() {
+				// 			1 page
+				// 		}
+				// 		@table.Head() {
+				// 			1-3 of 3
+				// 		}
+				// 		@table.Head() {
+				// 			Next
+				// 		}
+				// 	}
+				// }
+
+			}
+		}
+
+		<div class="w-full max-w-sm">
+			<form
+			 action="/products"
+			 method="POST"
+			 hx-post="/products"
+			 hx-select="#price"
+			 hx-target="#price"
+			 hx-swap="innerHTML"
+				>
+				@form.Item() {
+					@form.ItemFlex() {
+						@form.Label(form.LabelProps{
+							For: "price-form",
+						}) {
+							Price
+						}
+						@input.Input(input.Props{
+							ID:          "price-form",
+							Attributes: templ.Attributes{
+								"name": "price",
+								"step": "0.01",
+								"min": "0.00",
+							},
+							Type:        input.TypeNumber,
+							Placeholder: "0.00",
+						})
+						@form.Label(form.LabelProps{
+							For: "name-form",
+						}) {
+							Product name
+						}
+						@input.Input(input.Props{
+							ID:          "name-form",
+							Attributes: templ.Attributes{
+								"name": "name",
+							},
+							Type:        input.TypeText,
+							Placeholder: "product name",
+						})
+						@button.Button(button.Props{
+							Type:  button.TypeSubmit,
+							Class: "flex items-center gap-2",
+						}) {
+							Submit
+						}
+					}
+					@form.Description() {
+						price form
+					}
+				}
+			</form>
+		</div>
+
 	}
 }

@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"pgx-sqlc/db"
-	"pgx-sqlc/qbo"
 	"pgx-sqlc/ui/assets"
 	"pgx-sqlc/ui/pages"
 
@@ -73,7 +72,7 @@ func main() {
 	log.Printf("db_url: %#v\n", db_url)
 	pgdb := db.NewDatabase(ctx, db_url)
 
-	// TODO: something
+	// TODO: user login flow
 	// joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")
 	UUID := LOCALJOE
 	if !isdev {
@@ -85,31 +84,29 @@ func main() {
 	}
 	udb := db.UserDatabase{&joe, pgdb}
 
-	newprod, err := udb.NewProduct(ctx, "bina's neener", "100.15")
+	getProductsH, err := db.InitHandler(&udb, db.GetProducts)
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("newprod: %#v\n", newprod)
-
-	productsh, err := db.InitHandler(&udb, db.GetProducts)
+	postProductsH, err := db.InitHandler(&udb, db.PostProducts)
 	if err != nil {
 		panic(err)
 	}
 
-	////////////////////////////////////////
-	// QBO setup
-	c, err := qbo.SetupQboClient()
-	if err != nil {
-		panic(err)
-	}
-	geth, err := qbo.InitHandler(c, qbo.GetInvoice)
-	if err != nil {
-		panic(err)
-	}
-	posth, err := qbo.InitHandler(c, qbo.PostInvoice)
-	if err != nil {
-		panic(err)
-	}
+	// ////////////////////////////////////////
+	// // QBO setup
+	// c, err := qbo.SetupQboClient()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// geth, err := qbo.InitHandler(c, qbo.GetInvoice)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// posth, err := qbo.InitHandler(c, qbo.PostInvoice)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	////////////////////////////////////////
 	// handlers
@@ -119,10 +116,11 @@ func main() {
 	// default
 	mux.Handle("GET /", templ.Handler(pages.Landing()))
 	// DB
-	mux.Handle("GET /products", productsh)
+	mux.Handle("GET /products", getProductsH)
+	mux.Handle("POST /products", postProductsH)
 	// QBO
-	mux.Handle("GET /qbo", geth)
-	mux.Handle("POST /qbo", posth)
+	// mux.Handle("GET /qbo", geth)
+	// mux.Handle("POST /qbo", posth)
 
 	// ListenAndServe
 	if isdev {

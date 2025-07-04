@@ -2,6 +2,7 @@ package layouts
 
 import (
 	"pgx-sqlc/ui/modules"
+	"pgx-sqlc/ui/templui/components/input"
 )
 
 templ ThemeSwitcherScript() {
@@ -40,6 +41,7 @@ templ BaseLayout() {
 			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 			<!-- Theme switcher script -->
 			@ThemeSwitcherScript()
+			@input.Script()
 		</head>
 		<body
 			x-data="themeHandler"

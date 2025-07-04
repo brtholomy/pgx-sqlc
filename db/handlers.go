@@ -11,11 +11,9 @@ import (
 )
 
 // //////////////////////////////////////////////////////////
-// helpers
+// renderers
 
-func handleProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
-	// func handleProducts(w http.ResponseWriter, r *http.Request, products []sqlc.Product) {
-
+func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 	var products []pages.Product
 	// FIXME: do something when products is empty.
 	for _, p := range in {
@@ -74,23 +72,26 @@ func GetProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *h
 		panic(err)
 	}
 	// log.Println(products)
-	handleProducts(w, r, products)
+	renderProducts(w, r, products)
 }
 
-// func PostProducts(dh *DbHandler, w http.ResponseWriter, r *http.Request) {
-// 	r.ParseForm()
+func PostProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-// 	// TODO: handle more than just amount:
-// 	amount := ""
-// 	if r.Form.Has("amount") {
-// 		amount = r.Form.Get("amount")
-// 	}
-
-// 	invoice := fillProducts(amount)
-// 	resp, err := dh.udb.DB.Query.CreateProduct()
-// 	// TODO: what to do with errors? handleError()?
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	handleProducts(w, r, resp)
-// }
+	// TODO: handle more than just amount:
+	name := ""
+	price := ""
+	if r.Form.Has("name") {
+		name = r.Form.Get("name")
+	}
+	if r.Form.Has("price") {
+		price = r.Form.Get("price")
+	}
+	product, err := dh.Udb.NewProduct(ctx, name, price)
+	// TODO: handleError
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("new product: %#v\n", product)
+	GetProducts(ctx, dh, w, r)
+}
