@@ -85,13 +85,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	udb := db.UserDatabase{&joe, pgdb}
-
-	getProductsH, err := db.InitHandler(&udb, db.GetProducts)
+	udb, err := db.NewUserDatabase(&joe, pgdb)
 	if err != nil {
 		panic(err)
 	}
-	postProductsH, err := db.InitHandler(&udb, db.PostProducts)
+
+	getProductsH, err := db.NewDbHandler(&udb, db.GetProducts)
+	if err != nil {
+		panic(err)
+	}
+	postProductsH, err := db.NewDbHandler(&udb, db.PostProducts)
 	if err != nil {
 		panic(err)
 	}

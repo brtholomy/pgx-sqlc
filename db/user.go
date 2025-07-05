@@ -2,9 +2,8 @@ package db
 
 import (
 	"context"
+	"errors"
 	"pgx-sqlc/db/sqlc"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // convenience function for use before UserDatabase can be created.
@@ -32,37 +31,23 @@ func NewUser(ctx context.Context, pgdb *Database, name, email string) (sqlc.User
 // Another wrapper.
 // TODO: Not convinced this is the right abstraction. But surely I'll be doing most things on the
 // behalf of a single user.
+//
+// NOTE: Prefer to pass this as an arg from within handlers, rather than add methods. I don't like
+// implicit dependencies.
 type UserDatabase struct {
 	User *sqlc.User
 	DB   *Database
 }
 
-func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*sqlc.Product, error) {
-	pid, err := MakeUUIDv7()
-	if err != nil {
-		return nil, err
+func NewUserDatabase(user *sqlc.User, pgdb *Database) (UserDatabase, error) {
+	if user == nil {
+		return UserDatabase{}, errors.New("missing sqlc.User!")
 	}
-	var num pgtype.Numeric
-	err = num.Scan(price)
-	if err != nil {
-		return nil, err
+	if pgdb == nil {
+		return UserDatabase{}, errors.New("missing Database!")
 	}
-	newprod, err := udb.DB.Sqlc.CreateProduct(ctx, sqlc.CreateProductParams{
-		ID:     pid,
-		UserID: udb.User.ID,
-		Name:   name,
-		Price:  num,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &newprod, nil
-}
-
-func (udb *UserDatabase) ListProducts(ctx context.Context) ([]sqlc.Product, error) {
-	products, err := udb.DB.Sqlc.ListProducts(ctx, udb.User.ID)
-	if err != nil {
-		return nil, err
-	}
-	return products, nil
+	return UserDatabase{
+		User: user,
+		DB:   pgdb,
+	}, nil
 }

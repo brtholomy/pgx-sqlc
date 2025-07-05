@@ -7,10 +7,46 @@ import (
 	"net/http"
 	"pgx-sqlc/db/sqlc"
 	"pgx-sqlc/ui/pages"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // //////////////////////////////////////////////////////////
-// renderers
+// DB
+
+func NewProduct(ctx context.Context, udb *UserDatabase, name, price string) (*sqlc.Product, error) {
+	pid, err := MakeUUIDv7()
+	if err != nil {
+		return nil, err
+	}
+	var num pgtype.Numeric
+	err = num.Scan(price)
+	if err != nil {
+		return nil, err
+	}
+	newprod, err := udb.DB.Sqlc.CreateProduct(ctx, sqlc.CreateProductParams{
+		ID:     pid,
+		UserID: udb.User.ID,
+		Name:   name,
+		Price:  num,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &newprod, nil
+}
+
+func ListProducts(ctx context.Context, udb *UserDatabase) ([]sqlc.Product, error) {
+	products, err := udb.DB.Sqlc.ListProducts(ctx, udb.User.ID)
+	if err != nil {
+		return nil, err
+	}
+	return products, nil
+}
+
+// //////////////////////////////////////////////////////////
+// page renderers
+
 func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 	var products []pages.Product
 	// FIXME: do something when products is empty.
@@ -33,8 +69,9 @@ func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 
 // //////////////////////////////////////////////////////////
 // handlers
+
 func GetProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
-	products, err := dh.Udb.ListProducts(ctx)
+	products, err := ListProducts(ctx, dh.Udb)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +91,7 @@ func PostProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *
 	if r.Form.Has("price") {
 		price = r.Form.Get("price")
 	}
-	product, err := dh.Udb.NewProduct(ctx, name, price)
+	product, err := NewProduct(ctx, dh.Udb, name, price)
 	// TODO: handleError
 	if err != nil {
 		panic(err)

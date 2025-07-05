@@ -24,7 +24,7 @@ func (dh DbHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Sets up a DbHandler while checking dependencies.
-func InitHandler(
+func NewDbHandler(
 	udb *UserDatabase,
 	p func(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request)) (DbHandler, error) {
 	if udb == nil {
