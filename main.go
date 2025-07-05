@@ -70,7 +70,10 @@ func main() {
 		}
 	}
 	log.Printf("db_url: %#v\n", db_url)
-	pgdb := db.NewDatabase(ctx, db_url)
+	pgdb, err := db.NewDatabase(ctx, db_url)
+	if err != nil {
+		panic(err)
+	}
 
 	// TODO: user login flow
 	// joe, err := db.NewUser(ctx, pgdb, "joe", "j@blow.com")

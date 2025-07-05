@@ -13,7 +13,7 @@ func GetUser(ctx context.Context, pgdb *Database, id string) (sqlc.User, error) 
 	if err != nil {
 		panic(err)
 	}
-	return pgdb.Query.GetUser(ctx, uuid)
+	return pgdb.Sqlc.GetUser(ctx, uuid)
 }
 
 // convenience function for use before UserDatabase can be created.
@@ -22,7 +22,7 @@ func NewUser(ctx context.Context, pgdb *Database, name, email string) (sqlc.User
 	if err != nil {
 		return sqlc.User{}, err
 	}
-	return pgdb.Query.CreateUser(ctx, sqlc.CreateUserParams{
+	return pgdb.Sqlc.CreateUser(ctx, sqlc.CreateUserParams{
 		ID:    id,
 		Name:  name,
 		Email: email,
@@ -47,7 +47,7 @@ func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*s
 	if err != nil {
 		return nil, err
 	}
-	newprod, err := udb.DB.Query.CreateProduct(ctx, sqlc.CreateProductParams{
+	newprod, err := udb.DB.Sqlc.CreateProduct(ctx, sqlc.CreateProductParams{
 		ID:     pid,
 		UserID: udb.User.ID,
 		Name:   name,
@@ -60,7 +60,7 @@ func (udb *UserDatabase) NewProduct(ctx context.Context, name, price string) (*s
 }
 
 func (udb *UserDatabase) ListProducts(ctx context.Context) ([]sqlc.Product, error) {
-	products, err := udb.DB.Query.ListProducts(ctx, udb.User.ID)
+	products, err := udb.DB.Sqlc.ListProducts(ctx, udb.User.ID)
 	if err != nil {
 		return nil, err
 	}
