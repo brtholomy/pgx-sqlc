@@ -11,7 +11,7 @@ import (
 type Invoice struct {
 	ID            pgtype.UUID        `db:"id" json:"id"`
 	UserID        pgtype.UUID        `db:"user_id" json:"user_id"`
-	InvoiceNumber string             `db:"invoice_number" json:"invoice_number"`
+	InvoiceNumber int32              `db:"invoice_number" json:"invoice_number"`
 	Total         pgtype.Numeric     `db:"total" json:"total"`
 	Created       pgtype.Timestamptz `db:"created" json:"created"`
 	Modified      pgtype.Timestamptz `db:"modified" json:"modified"`

@@ -15,3 +15,17 @@ RETURNING *;
 
 -- name: ListProducts :many
 SELECT * FROM products WHERE user_id = $1;
+
+-- name: CreateInvoice :one
+INSERT INTO invoices (id, user_id, invoice_number, total) VALUES ($1, $2, $3, $4)
+RETURNING *;
+
+-- name: ListInvoices :many
+SELECT * FROM invoices WHERE user_id = $1;
+
+-- name: CreateInvoiceItem :one
+INSERT INTO invoice_items (id, user_id, product_id, invoice_id, amount) VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- name: ListInvoiceItems :many
+SELECT * FROM invoice_items WHERE user_id = $1;

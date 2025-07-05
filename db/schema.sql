@@ -14,7 +14,7 @@ create table products(
 create table invoices(
    id uuid PRIMARY KEY NOT NULL,
    user_id uuid REFERENCES users ON DELETE CASCADE,
-   invoice_number VARCHAR NOT NULL,
+   invoice_number INT NOT NULL,
    total NUMERIC(100, 2) NOT NULL,
    created TIMESTAMPTZ DEFAULT now(),
    modified TIMESTAMPTZ DEFAULT now()

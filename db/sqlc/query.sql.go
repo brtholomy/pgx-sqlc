@@ -11,6 +11,69 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createInvoice = `-- name: CreateInvoice :one
+INSERT INTO invoices (id, user_id, invoice_number, total) VALUES ($1, $2, $3, $4)
+RETURNING id, user_id, invoice_number, total, created, modified
+`
+
+type CreateInvoiceParams struct {
+	ID            pgtype.UUID    `db:"id" json:"id"`
+	UserID        pgtype.UUID    `db:"user_id" json:"user_id"`
+	InvoiceNumber int32          `db:"invoice_number" json:"invoice_number"`
+	Total         pgtype.Numeric `db:"total" json:"total"`
+}
+
+func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (Invoice, error) {
+	row := q.db.QueryRow(ctx, createInvoice,
+		arg.ID,
+		arg.UserID,
+		arg.InvoiceNumber,
+		arg.Total,
+	)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.InvoiceNumber,
+		&i.Total,
+		&i.Created,
+		&i.Modified,
+	)
+	return i, err
+}
+
+const createInvoiceItem = `-- name: CreateInvoiceItem :one
+INSERT INTO invoice_items (id, user_id, product_id, invoice_id, amount) VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, product_id, invoice_id, amount
+`
+
+type CreateInvoiceItemParams struct {
+	ID        pgtype.UUID    `db:"id" json:"id"`
+	UserID    pgtype.UUID    `db:"user_id" json:"user_id"`
+	ProductID pgtype.UUID    `db:"product_id" json:"product_id"`
+	InvoiceID pgtype.UUID    `db:"invoice_id" json:"invoice_id"`
+	Amount    pgtype.Numeric `db:"amount" json:"amount"`
+}
+
+func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemParams) (InvoiceItem, error) {
+	row := q.db.QueryRow(ctx, createInvoiceItem,
+		arg.ID,
+		arg.UserID,
+		arg.ProductID,
+		arg.InvoiceID,
+		arg.Amount,
+	)
+	var i InvoiceItem
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ProductID,
+		&i.InvoiceID,
+		&i.Amount,
+	)
+	return i, err
+}
+
 const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (id, user_id, name, price) VALUES ($1, $2, $3, $4)
 RETURNING id, user_id, name, price
@@ -68,6 +131,67 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	var i User
 	err := row.Scan(&i.ID, &i.Email, &i.Name)
 	return i, err
+}
+
+const listInvoiceItems = `-- name: ListInvoiceItems :many
+SELECT id, user_id, product_id, invoice_id, amount FROM invoice_items WHERE user_id = $1
+`
+
+func (q *Queries) ListInvoiceItems(ctx context.Context, userID pgtype.UUID) ([]InvoiceItem, error) {
+	rows, err := q.db.Query(ctx, listInvoiceItems, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []InvoiceItem
+	for rows.Next() {
+		var i InvoiceItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ProductID,
+			&i.InvoiceID,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listInvoices = `-- name: ListInvoices :many
+SELECT id, user_id, invoice_number, total, created, modified FROM invoices WHERE user_id = $1
+`
+
+func (q *Queries) ListInvoices(ctx context.Context, userID pgtype.UUID) ([]Invoice, error) {
+	rows, err := q.db.Query(ctx, listInvoices, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.InvoiceNumber,
+			&i.Total,
+			&i.Created,
+			&i.Modified,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listProducts = `-- name: ListProducts :many
