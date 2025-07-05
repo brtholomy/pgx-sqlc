@@ -14,12 +14,13 @@ server:
 	--build.stop_on_error "false" \
 	--misc.clean_on_exit true
 
-tailwind-clean:
+clean-regenerate:
 	tailwindcss -i ./ui/assets/css/input.css -o ./ui/assets/css/output.css --clean
+	sqlc generate
 
 tailwind-watch:
 	tailwindcss -i ./ui/assets/css/input.css -o ./ui/assets/css/output.css --watch
 
 dev:
-	make tailwind-clean
+	make clean-regenerate
 	make -j3 tailwind-watch templ server
