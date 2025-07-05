@@ -134,11 +134,16 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 }
 
 const listInvoiceItems = `-- name: ListInvoiceItems :many
-SELECT id, user_id, product_id, invoice_id, amount FROM invoice_items WHERE user_id = $1
+SELECT id, user_id, product_id, invoice_id, amount FROM invoice_items WHERE user_id = $1 AND invoice_id = $2
 `
 
-func (q *Queries) ListInvoiceItems(ctx context.Context, userID pgtype.UUID) ([]InvoiceItem, error) {
-	rows, err := q.db.Query(ctx, listInvoiceItems, userID)
+type ListInvoiceItemsParams struct {
+	UserID    pgtype.UUID `db:"user_id" json:"user_id"`
+	InvoiceID pgtype.UUID `db:"invoice_id" json:"invoice_id"`
+}
+
+func (q *Queries) ListInvoiceItems(ctx context.Context, arg ListInvoiceItemsParams) ([]InvoiceItem, error) {
+	rows, err := q.db.Query(ctx, listInvoiceItems, arg.UserID, arg.InvoiceID)
 	if err != nil {
 		return nil, err
 	}

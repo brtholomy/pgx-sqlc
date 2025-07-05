@@ -28,4 +28,4 @@ INSERT INTO invoice_items (id, user_id, product_id, invoice_id, amount) VALUES (
 RETURNING *;
 
 -- name: ListInvoiceItems :many
-SELECT * FROM invoice_items WHERE user_id = $1;
+SELECT * FROM invoice_items WHERE user_id = $1 AND invoice_id = $2;

@@ -14,7 +14,7 @@ import (
 // //////////////////////////////////////////////////////////
 // DB
 
-func NewProduct(ctx context.Context, udb *UserDatabase, name, price string) (*sqlc.Product, error) {
+func newProduct(ctx context.Context, udb *UserDatabase, name, price string) (*sqlc.Product, error) {
 	pid, err := MakeUUIDv7()
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func NewProduct(ctx context.Context, udb *UserDatabase, name, price string) (*sq
 	return &newprod, nil
 }
 
-func ListProducts(ctx context.Context, udb *UserDatabase) ([]sqlc.Product, error) {
+func listProducts(ctx context.Context, udb *UserDatabase) ([]sqlc.Product, error) {
 	products, err := udb.DB.Sqlc.ListProducts(ctx, udb.User.ID)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 // handlers
 
 func GetProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
-	products, err := ListProducts(ctx, dh.Udb)
+	products, err := listProducts(ctx, dh.Udb)
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +91,7 @@ func PostProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *
 	if r.Form.Has("price") {
 		price = r.Form.Get("price")
 	}
-	product, err := NewProduct(ctx, dh.Udb, name, price)
+	product, err := newProduct(ctx, dh.Udb, name, price)
 	// TODO: handleError
 	if err != nil {
 		panic(err)

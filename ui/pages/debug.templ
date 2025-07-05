@@ -1,0 +1,14 @@
+package pages
+
+import (
+	"fmt"
+	"pgx-sqlc/ui/layouts"
+)
+
+templ Debug[T any](v T) {
+	@layouts.BaseLayout() {
+		<div class="flex justify-center items-center min-h-screen">
+			{ fmt.Sprintf("#%v", v) }
+		</div>
+	}
+}
