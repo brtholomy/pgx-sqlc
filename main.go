@@ -102,6 +102,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	postInvoiceH, err := db.NewDbHandler(&udb, db.PostInvoice)
+	if err != nil {
+		panic(err)
+	}
 
 	// ////////////////////////////////////////
 	// // QBO setup
@@ -129,6 +133,7 @@ func main() {
 	mux.Handle("GET /products", getProductsH)
 	mux.Handle("POST /products", postProductsH)
 	mux.Handle("GET /invoice", getInvoiceH)
+	mux.Handle("POST /invoice", postInvoiceH)
 	// QBO
 	// mux.Handle("GET /qbo", geth)
 	// mux.Handle("POST /qbo", posth)

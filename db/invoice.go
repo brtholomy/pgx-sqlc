@@ -54,12 +54,36 @@ func fetchInvoiceItems(
 	return items, nil
 }
 
+func newInvoiceItem(ctx context.Context, udb *UserDatabase, invid pgtype.UUID, pid pgtype.UUID) (*sqlc.InvoiceItem, error) {
+	itemid, err := MakeUUIDv7()
+	if err != nil {
+		return nil, err
+	}
+	var num pgtype.Numeric
+	// TODO: pass in product.price ? do a lookup?
+	err = num.Scan("0.00")
+	if err != nil {
+		return nil, err
+	}
+	newprod, err := udb.DB.Sqlc.CreateInvoiceItem(ctx, sqlc.CreateInvoiceItemParams{
+		ID:        itemid,
+		UserID:    udb.User.ID,
+		ProductID: pid,
+		InvoiceID: invid,
+		Amount:    num,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &newprod, nil
+}
+
 // //////////////////////////////////////////////////////////
 // renderers
 
-func renderInvoice(w http.ResponseWriter, r *http.Request, items []pages.InvoiceItem) {
-	log.Println(items)
-	component := pages.Invoice(items)
+func renderInvoice(w http.ResponseWriter, r *http.Request, i []pages.InvoiceItem, p []pages.Product) {
+	log.Println(i)
+	component := pages.Invoice(i, p)
 	component.Render(r.Context(), w)
 }
 
@@ -77,22 +101,34 @@ func GetInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *ht
 	if err != nil {
 		panic(err)
 	}
-	renderInvoice(w, r, items)
+	sps, err := listProducts(ctx, dh.Udb)
+	if err != nil {
+		panic(err)
+	}
+	products := convertToPageProducts(sps)
+	renderInvoice(w, r, items, products)
 }
 
-// func PostInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
-// 	r.ParseForm()
+func PostInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-// 	// TODO: handle more than just amount:
-// 	name := ""
-// 	if r.Form.Has("name") {
-// 		name = r.Form.Get("name")
-// 	}
-// 	product, err := dh.Udb.NewInvoice(ctx, name)
-// 	// TODO: handleError
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	log.Printf("new product: %#v\n", product)
-// 	GetInvoice(ctx, dh, w, r)
-// }
+	pidstr := ""
+	if r.Form.Has("product") {
+		pidstr = r.Form.Get("product")
+	}
+	pid, err := ReadUUID(pidstr)
+	if err != nil {
+		panic(err)
+	}
+	// TODO: get back from req?
+	invid, err := ReadUUID(LOCALINV)
+	if err != nil {
+		panic(err)
+	}
+	product, err := newInvoiceItem(ctx, dh.Udb, invid, pid)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("new product: %#v\n", product)
+	GetInvoice(ctx, dh, w, r)
+}

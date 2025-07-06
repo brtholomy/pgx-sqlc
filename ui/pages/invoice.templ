@@ -4,7 +4,7 @@ import (
 	"pgx-sqlc/ui/layouts"
 	"pgx-sqlc/ui/templui/components/button"
 	"pgx-sqlc/ui/templui/components/form"
-	"pgx-sqlc/ui/templui/components/input"
+	"pgx-sqlc/ui/templui/components/selectbox"
 	"pgx-sqlc/ui/templui/components/table"
 )
 
@@ -14,10 +14,17 @@ type InvoiceItem struct {
 	// Amount string
 }
 
-templ Invoice(items []InvoiceItem) {
+templ Invoice(items []InvoiceItem, products []Product) {
 	@layouts.BaseLayout() {
+		@DisplayInvoice(items)
+		@AddProduct(products)
+	}
+}
 
-		@table.Table() {
+templ DisplayInvoice(items []InvoiceItem) {
+
+	@table.Table(
+		table.Props{ ID: "products-table", }) {
 			@table.Caption() {
 				Invoice items
 			}
@@ -29,9 +36,6 @@ templ Invoice(items []InvoiceItem) {
 					@table.Head() {
 						Price
 					}
-					// @table.Head() {
-					// 	Actions
-					// }
 				}
 			}
 			@table.Body() {
@@ -44,88 +48,69 @@ templ Invoice(items []InvoiceItem) {
 						@table.Cell() {
 							{i.Product.Price}
 						}
-						// @table.Cell() {
-						// 	Edit
-						// }
 					}
 				}
-
-				// @table.Footer() {
-				// 	@table.Row() {
-				// 		@table.Head() {
-				// 			3 items
-				// 		}
-				// 		@table.Head() {
-				// 			1 page
-				// 		}
-				// 		@table.Head() {
-				// 			1-3 of 3
-				// 		}
-				// 		@table.Head() {
-				// 			Next
-				// 		}
-				// 	}
-				// }
-
 			}
 		}
+}
 
-		<div class="w-full max-w-sm">
+templ AddProduct(products []Product) {
+
+	<div class="w-full max-w-sm">
 			<form
 			 action="/invoice"
 			 method="POST"
 			 hx-post="/invoice"
-			 hx-select="#price"
-			 hx-target="#price"
+			 hx-select="#products-table"
+			 hx-target="#products-table"
 			 hx-swap="innerHTML"
 				>
+
 				@form.Item() {
-					@form.ItemFlex() {
-						<div class="max-w-sm grid gap-2">
-							@form.Label(form.LabelProps{
-								For: "price-form",
-							}) {
-								Price
-							}
-							@input.Input(input.Props{
-								ID:          "price-form",
-								Attributes: templ.Attributes{
-									"name": "price",
-									"step": "0.01",
-									"min": "0.00",
-								},
-								Type:        input.TypeNumber,
-								Placeholder: "0.00",
-								Required: true,
+					@form.Label(form.LabelProps{
+						For: "select-form",
+					}) {
+						Product
+					}
+					@selectbox.SelectBox() {
+						@selectbox.Trigger(selectbox.TriggerProps{
+							ID:       "select-form",
+							Name:     "product",
+							Required: true,
+							HasError: true,
+						}) {
+							@selectbox.Value(selectbox.ValueProps{
+								Placeholder: "Select a product",
 							})
-							@form.Label(form.LabelProps{
-								For: "name-form",
-							}) {
-								Product name
+						}
+						@selectbox.Content() {
+
+							for _, p := range products {
+
+								@selectbox.Item(selectbox.ItemProps{
+									Value: p.ID,
+								}) {
+									{p.Name}
+								}
 							}
-							@input.Input(input.Props{
-								ID:          "name-form",
-								Attributes: templ.Attributes{
-									"name": "name",
-								},
-								Type:        input.TypeText,
-								Placeholder: "product name",
-								Required: true,
-							})
-							@button.Button(button.Props{
-								Type:  button.TypeSubmit,
-								Class: "flex items-center gap-2",
-							}) {
-								Submit
-							}
-						</div>
+						}
 					}
 					@form.Description() {
-						price form
+						Add from your product library
+					}
+					@button.Button(button.Props{
+						Type:  button.TypeSubmit,
+						Class: "flex items-center gap-2",
+					}) {
+						Submit
+					}
+					@form.Message(form.MessageProps{
+						Variant: form.MessageVariantError,
+					}) {
+						A selection is required.
 					}
 				}
+
 			</form>
 		</div>
-
-	}
 }

@@ -53,17 +53,13 @@ func convertToPageProduct(p sqlc.Product) (pages.Product, error) {
 	}
 	// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
 	price := fmt.Sprintf("%.2f", pgtype_int.Float64)
-	return pages.Product{p.Name, price}, nil
+	pidstr := p.ID.String()
+	return pages.Product{p.Name, price, pidstr}, nil
 }
 
-// //////////////////////////////////////////////////////////
-// page renderers
-
-func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
+func convertToPageProducts(sps []sqlc.Product) []pages.Product {
 	var products []pages.Product
-	// TODO: do something when products is empty.
-	for _, sp := range in {
-		// TODO: should we convert earlier to match fetchInvoiceItems?
+	for _, sp := range sps {
 		p, err := convertToPageProduct(sp)
 		if err != nil {
 			log.Printf("failed to convert product: %#v\n", err)
@@ -71,7 +67,14 @@ func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 		}
 		products = append(products, p)
 	}
+	return products
+}
 
+// //////////////////////////////////////////////////////////
+// page renderers
+
+func renderProducts(w http.ResponseWriter, r *http.Request, products []pages.Product) {
+	// TODO: do something when products is empty.
 	component := pages.ListProducts(products)
 	component.Render(r.Context(), w)
 }
@@ -80,11 +83,11 @@ func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 // handlers
 
 func GetProducts(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
-	products, err := listProducts(ctx, dh.Udb)
+	sps, err := listProducts(ctx, dh.Udb)
 	if err != nil {
 		panic(err)
 	}
-	// log.Println(products)
+	products := convertToPageProducts(sps)
 	renderProducts(w, r, products)
 }
 

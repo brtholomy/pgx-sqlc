@@ -2,6 +2,8 @@ package layouts
 
 import (
 	"pgx-sqlc/ui/modules"
+	"pgx-sqlc/ui/templui/components/popover"
+	"pgx-sqlc/ui/templui/components/selectbox"
 	"pgx-sqlc/ui/templui/components/input"
 	"pgx-sqlc/ui/templui/components/label"
 )
@@ -44,9 +46,11 @@ templ BaseLayout() {
 			@ThemeSwitcherScript()
 			@input.Script()
 			@label.Script()
+			@selectbox.Script()
+			@popover.Script()
 		</head>
 		<body
-			x-data="themeHandler"
+		 x-data="themeHandler"
 			x-bind:class="themeClasses"
 		>
 			@modules.Navbar()
