@@ -18,7 +18,7 @@ import (
 
 const RENDER_ENV_PATH = "/etc/secrets/.env"
 
-// FIXME: yeah
+// TODO: yeah
 const LOCALJOE = "0197ada4-5f8b-77d7-b039-5651eabf19e1"
 const REMOTEJOE = "0197d266-380a-741a-85f8-04fe8358be6b"
 

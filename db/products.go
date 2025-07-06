@@ -61,7 +61,7 @@ func convertToPageProduct(p sqlc.Product) (pages.Product, error) {
 
 func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 	var products []pages.Product
-	// FIXME: do something when products is empty.
+	// TODO: do something when products is empty.
 	for _, sp := range in {
 		// TODO: should we convert earlier to match fetchInvoiceItems?
 		p, err := convertToPageProduct(sp)

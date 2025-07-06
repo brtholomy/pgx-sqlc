@@ -18,7 +18,7 @@ func loadClient(token *qbohelp.BearerToken) (*qbohelp.Client, error) {
 }
 
 func SetupQboClient() (*qbohelp.Client, error) {
-	// FIXME: load from DB:
+	// TODO: load from DB:
 	bearer_token := &qbohelp.BearerToken{
 		RefreshToken: os.Getenv("REFRESH_TOKEN"),
 		AccessToken:  os.Getenv("ACCESS_TOKEN"),
