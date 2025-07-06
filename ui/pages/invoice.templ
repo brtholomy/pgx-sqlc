@@ -1,0 +1,131 @@
+package pages
+
+import (
+	"pgx-sqlc/ui/layouts"
+	"pgx-sqlc/ui/templui/components/button"
+	"pgx-sqlc/ui/templui/components/form"
+	"pgx-sqlc/ui/templui/components/input"
+	"pgx-sqlc/ui/templui/components/table"
+)
+
+type InvoiceItem struct {
+	Product Product
+	// TODO: markup?
+	// Amount string
+}
+
+templ Invoice(items []InvoiceItem) {
+	@layouts.BaseLayout() {
+
+		@table.Table() {
+			@table.Caption() {
+				Invoice items
+			}
+			@table.Header() {
+				@table.Row() {
+					@table.Head() {
+						Name
+					}
+					@table.Head() {
+						Price
+					}
+					// @table.Head() {
+					// 	Actions
+					// }
+				}
+			}
+			@table.Body() {
+
+				for _, i := range items {
+					@table.Row() {
+						@table.Cell() {
+							{i.Product.Name}
+						}
+						@table.Cell() {
+							{i.Product.Price}
+						}
+						// @table.Cell() {
+						// 	Edit
+						// }
+					}
+				}
+
+				// @table.Footer() {
+				// 	@table.Row() {
+				// 		@table.Head() {
+				// 			3 items
+				// 		}
+				// 		@table.Head() {
+				// 			1 page
+				// 		}
+				// 		@table.Head() {
+				// 			1-3 of 3
+				// 		}
+				// 		@table.Head() {
+				// 			Next
+				// 		}
+				// 	}
+				// }
+
+			}
+		}
+
+		<div class="w-full max-w-sm">
+			<form
+			 action="/invoice"
+			 method="POST"
+			 hx-post="/invoice"
+			 hx-select="#price"
+			 hx-target="#price"
+			 hx-swap="innerHTML"
+				>
+				@form.Item() {
+					@form.ItemFlex() {
+						<div class="max-w-sm grid gap-2">
+							@form.Label(form.LabelProps{
+								For: "price-form",
+							}) {
+								Price
+							}
+							@input.Input(input.Props{
+								ID:          "price-form",
+								Attributes: templ.Attributes{
+									"name": "price",
+									"step": "0.01",
+									"min": "0.00",
+								},
+								Type:        input.TypeNumber,
+								Placeholder: "0.00",
+								Required: true,
+							})
+							@form.Label(form.LabelProps{
+								For: "name-form",
+							}) {
+								Product name
+							}
+							@input.Input(input.Props{
+								ID:          "name-form",
+								Attributes: templ.Attributes{
+									"name": "name",
+								},
+								Type:        input.TypeText,
+								Placeholder: "product name",
+								Required: true,
+							})
+							@button.Button(button.Props{
+								Type:  button.TypeSubmit,
+								Class: "flex items-center gap-2",
+							}) {
+								Submit
+							}
+						</div>
+					}
+					@form.Description() {
+						price form
+					}
+				}
+			</form>
+		</div>
+
+	}
+}

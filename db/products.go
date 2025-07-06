@@ -44,23 +44,32 @@ func listProducts(ctx context.Context, udb *UserDatabase) ([]sqlc.Product, error
 	return products, nil
 }
 
+func convertToPageProduct(p sqlc.Product) (pages.Product, error) {
+	// TODO: is float64 what we want? Seems to be the only option from pgtypes.Numeric.
+	pgtype_int, err := p.Price.Float64Value()
+	if err != nil {
+		log.Printf("Failed to parse price for: %#v. err: %v\n", p.Name, err)
+		return pages.Product{}, err
+	}
+	// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
+	price := fmt.Sprintf("%.2f", pgtype_int.Float64)
+	return pages.Product{p.Name, price}, nil
+}
+
 // //////////////////////////////////////////////////////////
 // page renderers
 
 func renderProducts(w http.ResponseWriter, r *http.Request, in []sqlc.Product) {
 	var products []pages.Product
 	// FIXME: do something when products is empty.
-	for _, p := range in {
-		// TODO: is float64 what we want? Seems to be the only option from pgtypes.Numeric that
-		// works.
-		pgtype_int, err := p.Price.Float64Value()
+	for _, sp := range in {
+		// TODO: should we convert earlier to match fetchInvoiceItems?
+		p, err := convertToPageProduct(sp)
 		if err != nil {
-			log.Printf("Failed to parse price for: %#v. err: %v\n", p.Name, err)
-		} else {
-			// https://github.com/a-h/templ/issues/307#issuecomment-1828720574
-			price := fmt.Sprintf("%.2f", pgtype_int.Float64)
-			products = append(products, pages.Product{p.Name, price})
+			log.Printf("failed to convert product: %#v\n", err)
+			continue
 		}
+		products = append(products, p)
 	}
 
 	component := pages.ListProducts(products)

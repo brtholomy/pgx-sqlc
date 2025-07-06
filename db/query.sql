@@ -16,6 +16,9 @@ RETURNING *;
 -- name: ListProducts :many
 SELECT * FROM products WHERE user_id = $1;
 
+-- name: GetProduct :one
+SELECT * FROM products WHERE id = $1 LIMIT 1;
+
 -- name: CreateInvoice :one
 INSERT INTO invoices (id, user_id, invoice_number, total) VALUES ($1, $2, $3, $4)
 RETURNING *;

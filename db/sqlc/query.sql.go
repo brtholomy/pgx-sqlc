@@ -121,6 +121,22 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getProduct = `-- name: GetProduct :one
+SELECT id, user_id, name, price FROM products WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetProduct(ctx context.Context, id pgtype.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProduct, id)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Price,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, email, name FROM users
 WHERE id = $1 LIMIT 1
