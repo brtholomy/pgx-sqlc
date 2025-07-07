@@ -96,7 +96,6 @@ func GetInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *ht
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("invid: %#v\n", invid)
 	items, err := fetchInvoiceItems(ctx, dh.Udb, invid)
 	if err != nil {
 		panic(err)
@@ -105,8 +104,6 @@ func GetInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *ht
 	if err != nil {
 		panic(err)
 	}
-	log.Printf("[]sqlc.Product: %#v\n", len(sps))
-	log.Printf("dh.Udb.User.ID: %#v\n", dh.Udb.User.ID.String())
 	products := convertToPageProducts(sps)
 	renderInvoice(w, r, items, products)
 }
