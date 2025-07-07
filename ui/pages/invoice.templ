@@ -36,6 +36,9 @@ templ DisplayInvoice(items []InvoiceItem) {
 					@table.Head() {
 						Price
 					}
+					@table.Head() {
+						Actions
+					}
 				}
 			}
 			@table.Body() {
@@ -48,12 +51,16 @@ templ DisplayInvoice(items []InvoiceItem) {
 						@table.Cell() {
 							{i.Product.Price}
 						}
+						@table.Cell() {
+							Edit
+						}
 					}
 				}
 			}
 		}
 }
 
+// NOTE: the HTMX here isn't doing anything yet.
 templ AddProduct(products []Product) {
 
 	<div class="w-full max-w-sm">

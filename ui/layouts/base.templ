@@ -32,6 +32,38 @@ templ ThemeSwitcherScript() {
 	}
 }
 
+// https://templui.io/docs/how-to-use#htmx-integration
+templ HtmxInit() {
+	<script>
+		// Re-initialize templUI components after HTMX swaps
+		document.body.addEventListener("htmx:afterSwap", (e) => {
+		if (window.templUI) {
+		Object.values(window.templUI).forEach(comp => {
+        comp.init?.(e.detail.elt);
+		});
+		}
+		});
+
+		// Re-initialize components after out-of-band swaps
+		document.body.addEventListener("htmx:oobAfterSwap", (e) => {
+		if (window.templUI) {
+		Object.values(window.templUI).forEach(comp => {
+        comp.init?.(e.detail.target);
+		});
+		}
+		});
+
+		// Cleanup before swap (for components with event listeners)
+		document.body.addEventListener("htmx:beforeSwap", (e) => {
+		if (window.templUI) {
+		Object.values(window.templUI).forEach(comp => {
+        comp.cleanup?.(e.detail.target);
+		});
+		}
+		});
+	</script>
+}
+
 templ BaseLayout() {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full dark">
@@ -44,8 +76,10 @@ templ BaseLayout() {
 			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 			<!-- HTMX -->
 			<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+			@HtmxInit()
 			<!-- Theme switcher script -->
 			@ThemeSwitcherScript()
+			<!-- component scripts -->
 			@input.Script()
 			@label.Script()
 			@selectbox.Script()
@@ -53,8 +87,8 @@ templ BaseLayout() {
 		</head>
 		<body
 		 x-data="themeHandler"
-			x-bind:class="themeClasses"
-		>
+		 x-bind:class="themeClasses"
+			>
 			@modules.Navbar()
 			{ children... }
 		</body>
