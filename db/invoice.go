@@ -105,6 +105,8 @@ func GetInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *ht
 	if err != nil {
 		panic(err)
 	}
+	log.Printf("[]sqlc.Product: %#v\n", sps)
+	log.Printf("dh.Udb.User.ID: %#v\n", dh.Udb.User.ID.String())
 	products := convertToPageProducts(sps)
 	renderInvoice(w, r, items, products)
 }
