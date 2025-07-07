@@ -2,8 +2,10 @@ package pages
 
 import (
 	"pgx-sqlc/ui/layouts"
+	// "pgx-sqlc/ui/templui/components/input"
 	"pgx-sqlc/ui/templui/components/button"
 	"pgx-sqlc/ui/templui/components/form"
+	"pgx-sqlc/ui/templui/components/icon"
 	"pgx-sqlc/ui/templui/components/selectbox"
 	"pgx-sqlc/ui/templui/components/table"
 )
@@ -23,41 +25,69 @@ templ Invoice(items []InvoiceItem, products []Product) {
 
 templ DisplayInvoice(items []InvoiceItem) {
 
-	@table.Table(
-		table.Props{ ID: "products-table", }) {
-			@table.Caption() {
-				Invoice items
-			}
-			@table.Header() {
-				@table.Row() {
-					@table.Head() {
-						Name
-					}
-					@table.Head() {
-						Price
-					}
-					@table.Head() {
-						Actions
+	<form
+	 action="/invoice"
+	 method="POST"
+		>
+ <input type="hidden" name="form-identifier" value="delete-product-table">
+
+	 @table.Table(
+		 table.Props{ ID: "products-table", }) {
+			 @table.Caption() {
+					Invoice items
+				}
+				@table.Header() {
+					@table.Row() {
+						@table.Head() {
+							Name
+						}
+						@table.Head() {
+							Price
+						}
+						@table.Head() {
+							Actions
+						}
 					}
 				}
-			}
-			@table.Body() {
+				@table.Body() {
 
-				for _, i := range items {
-					@table.Row() {
-						@table.Cell() {
-							{i.Product.Name}
+					for _, i := range items {
+						@table.Row(table.RowProps{
+								Attributes: templ.Attributes{
+									"name": "ID",
+								},
+
+					}) {
+					@table.Cell() {
+						{i.Product.Name}
+					}
+					@table.Cell() {
+						{i.Product.Price}
+					}
+					@table.Cell() {
+						@button.Button(button.Props{
+							Type:  button.TypeSubmit,
+							Size:    button.SizeIcon,
+							Variant: button.VariantOutline,
+							Attributes: templ.Attributes{
+								"name": "delete-product",
+								"value": i.Product.ID,
+								// "hx-post": "/invoice",
+								// "hx-target": "#products-table",
+								// "hx-select": "#products-table",
+								// "hx-delete": "/invoice",
+								// "hx-vals": i.Product.ID,
+							},
+						}) {
+							@icon.Trash2(icon.Props{Size: 16})
 						}
-						@table.Cell() {
-							{i.Product.Price}
-						}
-						@table.Cell() {
-							Edit
-						}
+
 					}
 				}
 			}
 		}
+		}
+	</form>
 }
 
 // NOTE: the HTMX here isn't doing anything yet.
@@ -65,58 +95,57 @@ templ AddProduct(products []Product) {
 
 	<div class="w-full max-w-sm">
 			<form
-			 action="/invoice"
-			 method="POST"
 			 hx-post="/invoice"
 			 hx-select="#products-table"
 			 hx-target="#products-table"
 			 hx-swap="innerHTML"
 				>
+				<input type="hidden" name="form-identifier" value="add-product-selectbox">
 
-				@form.Item() {
-					@form.Label(form.LabelProps{
-						For: "select-form",
-					}) {
-						Product
-					}
-					@selectbox.SelectBox() {
-						@selectbox.Trigger(selectbox.TriggerProps{
-							ID:       "select-form",
-							Name:     "product",
-							Required: true,
-							HasError: true,
+					@form.Item() {
+						@form.Label(form.LabelProps{
+							For: "select-form",
 						}) {
-							@selectbox.Value(selectbox.ValueProps{
-								Placeholder: "Select a product",
-							})
+							Product
 						}
-						@selectbox.Content() {
+						@selectbox.SelectBox() {
+							@selectbox.Trigger(selectbox.TriggerProps{
+								ID:       "select-form",
+								Name:     "add-product",
+								Required: true,
+								HasError: true,
+							}) {
+								@selectbox.Value(selectbox.ValueProps{
+									Placeholder: "Select a product",
+								})
+							}
+							@selectbox.Content() {
 
-							for _, p := range products {
+								for _, p := range products {
 
-								@selectbox.Item(selectbox.ItemProps{
-									Value: p.ID,
-								}) {
-									{p.Name}
+									@selectbox.Item(selectbox.ItemProps{
+										Value: p.ID,
+									}) {
+										{p.Name}
+									}
 								}
 							}
 						}
+						@form.Description() {
+							Add from your product library
+						}
+						@button.Button(button.Props{
+							Type:  button.TypeSubmit,
+							Class: "flex items-center gap-2",
+						}) {
+							Submit
+						}
+						@form.Message(form.MessageProps{
+							Variant: form.MessageVariantError,
+						}) {
+							A selection is required.
+						}
 					}
-					@form.Description() {
-						Add from your product library
-					}
-					@button.Button(button.Props{
-						Type:  button.TypeSubmit,
-						Class: "flex items-center gap-2",
-					}) {
-						Submit
-					}
-					@form.Message(form.MessageProps{
-						Variant: form.MessageVariantError,
-					}) {
-						A selection is required.
-					}
-				}
 
 			</form>
 		</div>

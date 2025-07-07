@@ -82,7 +82,6 @@ func newInvoiceItem(ctx context.Context, udb *UserDatabase, invid pgtype.UUID, p
 // renderers
 
 func renderInvoice(w http.ResponseWriter, r *http.Request, i []pages.InvoiceItem, p []pages.Product) {
-	log.Println(i)
 	component := pages.Invoice(i, p)
 	component.Render(r.Context(), w)
 }
@@ -111,23 +110,42 @@ func GetInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *ht
 func PostInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	pidstr := ""
-	if r.Form.Has("product") {
-		pidstr = r.Form.Get("product")
-	}
-	pid, err := ReadUUID(pidstr)
-	if err != nil {
-		panic(err)
-	}
 	// TODO: get back from req?
 	invid, err := ReadUUID(LOCALINV)
 	if err != nil {
 		panic(err)
 	}
-	product, err := newInvoiceItem(ctx, dh.Udb, invid, pid)
-	if err != nil {
-		panic(err)
+
+	// TODO: this is the stupid old way, using multiple forms and distinguishing by a hidden input
+	// tag with a unique id per form.
+	// New way is to issue HTMX calls directly from the button.
+	// HTMX: https://htmx.org/docs/#ajax
+	form_id := r.FormValue("form-identifier")
+
+	switch form_id {
+
+	case "delete-product-table":
+		pid, err := GetUUID(r, "delete-product")
+		if err != nil {
+			panic(err)
+		}
+		// TODO: write a Delete handler.
+		log.Printf("delete: %#v\n", pid.String())
+
+	case "add-product-selectbox":
+		pid, err := GetUUID(r, "add-product")
+		if err != nil {
+			panic(err)
+		}
+		invitem, err := newInvoiceItem(ctx, dh.Udb, invid, pid)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("new product: %#v\n", invitem.ProductID.String())
+
+	default:
+		log.Printf("fail: %#v\n", form_id)
 	}
-	log.Printf("new product: %#v\n", product)
+
 	GetInvoice(ctx, dh, w, r)
 }
