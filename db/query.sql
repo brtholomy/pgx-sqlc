@@ -30,5 +30,8 @@ SELECT * FROM invoices WHERE user_id = $1;
 INSERT INTO invoice_items (id, user_id, product_id, invoice_id, amount) VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
+-- name: DeleteInvoiceItem :exec
+DELETE FROM invoice_items WHERE id = $1;
+
 -- name: ListInvoiceItems :many
 SELECT * FROM invoice_items WHERE user_id = $1 AND invoice_id = $2;

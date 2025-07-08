@@ -121,6 +121,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteInvoiceItem = `-- name: DeleteInvoiceItem :exec
+DELETE FROM invoice_items WHERE id = $1
+`
+
+func (q *Queries) DeleteInvoiceItem(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteInvoiceItem, id)
+	return err
+}
+
 const getProduct = `-- name: GetProduct :one
 SELECT id, user_id, name, price FROM products WHERE id = $1 LIMIT 1
 `

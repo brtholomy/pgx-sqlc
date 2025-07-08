@@ -12,6 +12,7 @@ import (
 
 type InvoiceItem struct {
 	Product Product
+	ID string
 	// TODO: markup?
 	// Amount string
 }
@@ -25,80 +26,72 @@ templ Invoice(items []InvoiceItem, products []Product) {
 
 templ DisplayInvoice(items []InvoiceItem) {
 
-	<form
-	 action="/invoice"
-	 method="POST"
-		>
- <input type="hidden" name="form-identifier" value="delete-product-table">
-
-	 @table.Table(
-		 table.Props{ ID: "products-table", }) {
-			 @table.Caption() {
-					Invoice items
-				}
-				@table.Header() {
-					@table.Row() {
-						@table.Head() {
-							Name
-						}
-						@table.Head() {
-							Price
-						}
-						@table.Head() {
-							Actions
-						}
+	@table.Table(
+		table.Props{ ID: "invoice-table", }) {
+			@table.Caption() {
+				Invoice items
+			}
+			@table.Header() {
+				@table.Row() {
+					@table.Head() {
+						Name
+					}
+					@table.Head() {
+						Price
+					}
+					@table.Head() {
+						Actions
 					}
 				}
-				@table.Body() {
+			}
+			@table.Body() {
 
-					for _, i := range items {
-						@table.Row(table.RowProps{
+				for _, i := range items {
+					@table.Row(table.RowProps{
 								Attributes: templ.Attributes{
 									"name": "ID",
 								},
 
+				}) {
+				@table.Cell() {
+					{i.Product.Name}
+				}
+				@table.Cell() {
+					{i.Product.Price}
+				}
+				@table.Cell() {
+					@button.Button(button.Props{
+						Type:  button.TypeSubmit,
+						Size:    button.SizeIcon,
+						Variant: button.VariantOutline,
+						Attributes: templ.Attributes{
+							"name": "delete-invoice-item",
+							"value": i.ID,
+							// "hx-select": "#invoice-table",
+							"hx-target": "#invoice-table",
+							"hx-delete": "/invoice",
+							// wasnt either of these:
+							// "hx-vals": i.ID,
+							// "hx-include":"[name='delete-invoice-item']",
+						},
 					}) {
-					@table.Cell() {
-						{i.Product.Name}
+						@icon.Trash2(icon.Props{Size: 16})
 					}
-					@table.Cell() {
-						{i.Product.Price}
-					}
-					@table.Cell() {
-						@button.Button(button.Props{
-							Type:  button.TypeSubmit,
-							Size:    button.SizeIcon,
-							Variant: button.VariantOutline,
-							Attributes: templ.Attributes{
-								"name": "delete-product",
-								"value": i.Product.ID,
-								// "hx-post": "/invoice",
-								// "hx-target": "#products-table",
-								// "hx-select": "#products-table",
-								// "hx-delete": "/invoice",
-								// "hx-vals": i.Product.ID,
-							},
-						}) {
-							@icon.Trash2(icon.Props{Size: 16})
-						}
 
-					}
 				}
 			}
 		}
-		}
-	</form>
+}
+}
 }
 
-// NOTE: the HTMX here isn't doing anything yet.
+// TODO: use HTMX for this too?
 templ AddProduct(products []Product) {
 
 	<div class="w-full max-w-sm">
 			<form
-			 hx-post="/invoice"
-			 hx-select="#products-table"
-			 hx-target="#products-table"
-			 hx-swap="innerHTML"
+			 action="/invoice"
+			 method="POST"
 				>
 				<input type="hidden" name="form-identifier" value="add-product-selectbox">
 

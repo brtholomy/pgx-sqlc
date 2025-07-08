@@ -47,6 +47,7 @@ func fetchInvoiceItems(
 		}
 		i := pages.InvoiceItem{
 			Product: p,
+			ID:      si.ID.String(),
 		}
 		items = append(items, i)
 	}
@@ -76,6 +77,14 @@ func newInvoiceItem(ctx context.Context, udb *UserDatabase, invid pgtype.UUID, p
 		return nil, err
 	}
 	return &newprod, nil
+}
+
+func deleteInvoiceItem(ctx context.Context, udb *UserDatabase, item_id pgtype.UUID) error {
+	err := udb.DB.Sqlc.DeleteInvoiceItem(ctx, item_id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // //////////////////////////////////////////////////////////
@@ -116,36 +125,59 @@ func PostInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *h
 		panic(err)
 	}
 
-	// TODO: this is the stupid old way, using multiple forms and distinguishing by a hidden input
-	// tag with a unique id per form.
-	// New way is to issue HTMX calls directly from the button.
-	// HTMX: https://htmx.org/docs/#ajax
-	form_id := r.FormValue("form-identifier")
+	pid, err := GetUUIDFromUrlValues(r.Form, "add-product")
+	if err != nil {
+		log.Printf("err: %#v\n", err)
+		log.Printf("req: %#v\n", r)
+		pages.Debug(r).Render(r.Context(), w)
+		return
+	}
+	invitem, err := newInvoiceItem(ctx, dh.Udb, invid, pid)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("new product: %#v\n", invitem.ProductID.String())
 
-	switch form_id {
+	items, err := fetchInvoiceItems(ctx, dh.Udb, invid)
+	if err != nil {
+		panic(err)
+	}
+	sps, err := listProducts(ctx, dh.Udb)
+	if err != nil {
+		panic(err)
+	}
+	products := convertToPageProducts(sps)
+	renderInvoice(w, r, items, products)
+}
 
-	case "delete-product-table":
-		pid, err := GetUUID(r, "delete-product")
-		if err != nil {
-			panic(err)
-		}
-		// TODO: write a Delete handler.
-		log.Printf("delete: %#v\n", pid.String())
+func DeleteInvoiceItem(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
 
-	case "add-product-selectbox":
-		pid, err := GetUUID(r, "add-product")
-		if err != nil {
-			panic(err)
-		}
-		invitem, err := newInvoiceItem(ctx, dh.Udb, invid, pid)
-		if err != nil {
-			panic(err)
-		}
-		log.Printf("new product: %#v\n", invitem.ProductID.String())
-
-	default:
-		log.Printf("fail: %#v\n", form_id)
+	// TODO: get back from req?
+	invid, err := ReadUUID(LOCALINV)
+	if err != nil {
+		panic(err)
 	}
 
-	GetInvoice(ctx, dh, w, r)
+	item_id, err := GetUUIDFromUrlValues(r.URL.Query(), "delete-invoice-item")
+	if err != nil {
+		log.Printf("err: %#v\n", err)
+		log.Printf("req: %#v\n", r)
+		pages.Debug(r).Render(r.Context(), w)
+		return
+	}
+	err = deleteInvoiceItem(ctx, dh.Udb, item_id)
+	if err != nil {
+		log.Fatalf("delete failed. item_id: %v", item_id, err)
+		pages.Debug(r).Render(r.Context(), w)
+		return
+	}
+	log.Printf("deleted invoice_item: %#v\n", item_id.String())
+
+	items, err := fetchInvoiceItems(ctx, dh.Udb, invid)
+	if err != nil {
+		panic(err)
+	}
+	component := pages.DisplayInvoice(items)
+	component.Render(r.Context(), w)
+
 }
