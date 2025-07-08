@@ -2,7 +2,6 @@ package pages
 
 import (
 	"pgx-sqlc/ui/layouts"
-	// "pgx-sqlc/ui/templui/components/input"
 	"pgx-sqlc/ui/templui/components/button"
 	"pgx-sqlc/ui/templui/components/form"
 	"pgx-sqlc/ui/templui/components/icon"
@@ -45,13 +44,11 @@ templ DisplayInvoice(items []InvoiceItem) {
 				}
 			}
 			@table.Body() {
-
 				for _, i := range items {
 					@table.Row(table.RowProps{
 								Attributes: templ.Attributes{
 									"name": "ID",
 								},
-
 				}) {
 				@table.Cell() {
 					{i.Product.Name}
@@ -89,56 +86,56 @@ templ DisplayInvoice(items []InvoiceItem) {
 templ AddProduct(products []Product) {
 
 	<div class="w-full max-w-sm">
-			<form
-				hx-post="/invoice"
-				hx-target="#invoice-table"
-				>
+		<form
+		 hx-post="/invoice"
+		 hx-target="#invoice-table"
+			>
 
-				@form.Item() {
-					@form.Label(form.LabelProps{
-						For: "select-form",
+			@form.Item() {
+				@form.Label(form.LabelProps{
+					For: "select-form",
+				}) {
+					Product
+				}
+				@selectbox.SelectBox() {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						ID:       "select-form",
+						Name:     "add-product",
+						Required: true,
+						HasError: true,
 					}) {
-						Product
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: "Select a product",
+						})
 					}
-					@selectbox.SelectBox() {
-						@selectbox.Trigger(selectbox.TriggerProps{
-							ID:       "select-form",
-							Name:     "add-product",
-							Required: true,
-							HasError: true,
-						}) {
-							@selectbox.Value(selectbox.ValueProps{
-								Placeholder: "Select a product",
-							})
-						}
-						@selectbox.Content() {
+					@selectbox.Content() {
 
-							for _, p := range products {
+						for _, p := range products {
 
-								@selectbox.Item(selectbox.ItemProps{
-									Value: p.ID,
-								}) {
-									{p.Name}
-								}
+							@selectbox.Item(selectbox.ItemProps{
+								Value: p.ID,
+							}) {
+								{p.Name}
 							}
 						}
 					}
-					@form.Description() {
-						Add from your product library
-					}
-					@button.Button(button.Props{
-						Type:  button.TypeSubmit,
-						Class: "flex items-center gap-2",
-					}) {
-						Submit
-					}
-					@form.Message(form.MessageProps{
-						Variant: form.MessageVariantError,
-					}) {
-						A selection is required.
-					}
 				}
+				@form.Description() {
+					Add from your product library
+				}
+				@button.Button(button.Props{
+					Type:  button.TypeSubmit,
+					Class: "flex items-center gap-2",
+				}) {
+					Submit
+				}
+				@form.Message(form.MessageProps{
+					Variant: form.MessageVariantError,
+				}) {
+					A selection is required.
+				}
+			}
 
-			</form>
-		</div>
+		</form>
+	</div>
 }
