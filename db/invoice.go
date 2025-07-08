@@ -142,12 +142,7 @@ func PostInvoice(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *h
 	if err != nil {
 		panic(err)
 	}
-	sps, err := listProducts(ctx, dh.Udb)
-	if err != nil {
-		panic(err)
-	}
-	products := convertToPageProducts(sps)
-	renderInvoice(w, r, items, products)
+	pages.DisplayInvoice(items).Render(r.Context(), w)
 }
 
 func DeleteInvoiceItem(ctx context.Context, dh *DbHandler, w http.ResponseWriter, r *http.Request) {
@@ -177,7 +172,5 @@ func DeleteInvoiceItem(ctx context.Context, dh *DbHandler, w http.ResponseWriter
 	if err != nil {
 		panic(err)
 	}
-	component := pages.DisplayInvoice(items)
-	component.Render(r.Context(), w)
-
+	pages.DisplayInvoice(items).Render(r.Context(), w)
 }

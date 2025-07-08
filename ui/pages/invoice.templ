@@ -90,55 +90,54 @@ templ AddProduct(products []Product) {
 
 	<div class="w-full max-w-sm">
 			<form
-			 action="/invoice"
-			 method="POST"
+				hx-post="/invoice"
+				hx-target="#invoice-table"
 				>
-				<input type="hidden" name="form-identifier" value="add-product-selectbox">
 
-					@form.Item() {
-						@form.Label(form.LabelProps{
-							For: "select-form",
+				@form.Item() {
+					@form.Label(form.LabelProps{
+						For: "select-form",
+					}) {
+						Product
+					}
+					@selectbox.SelectBox() {
+						@selectbox.Trigger(selectbox.TriggerProps{
+							ID:       "select-form",
+							Name:     "add-product",
+							Required: true,
+							HasError: true,
 						}) {
-							Product
+							@selectbox.Value(selectbox.ValueProps{
+								Placeholder: "Select a product",
+							})
 						}
-						@selectbox.SelectBox() {
-							@selectbox.Trigger(selectbox.TriggerProps{
-								ID:       "select-form",
-								Name:     "add-product",
-								Required: true,
-								HasError: true,
-							}) {
-								@selectbox.Value(selectbox.ValueProps{
-									Placeholder: "Select a product",
-								})
-							}
-							@selectbox.Content() {
+						@selectbox.Content() {
 
-								for _, p := range products {
+							for _, p := range products {
 
-									@selectbox.Item(selectbox.ItemProps{
-										Value: p.ID,
-									}) {
-										{p.Name}
-									}
+								@selectbox.Item(selectbox.ItemProps{
+									Value: p.ID,
+								}) {
+									{p.Name}
 								}
 							}
 						}
-						@form.Description() {
-							Add from your product library
-						}
-						@button.Button(button.Props{
-							Type:  button.TypeSubmit,
-							Class: "flex items-center gap-2",
-						}) {
-							Submit
-						}
-						@form.Message(form.MessageProps{
-							Variant: form.MessageVariantError,
-						}) {
-							A selection is required.
-						}
 					}
+					@form.Description() {
+						Add from your product library
+					}
+					@button.Button(button.Props{
+						Type:  button.TypeSubmit,
+						Class: "flex items-center gap-2",
+					}) {
+						Submit
+					}
+					@form.Message(form.MessageProps{
+						Variant: form.MessageVariantError,
+					}) {
+						A selection is required.
+					}
+				}
 
 			</form>
 		</div>
